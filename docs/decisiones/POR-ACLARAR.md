@@ -5,7 +5,7 @@ Registro de dudas y decisiones (resueltas + pendientes). Se actualiza a medida q
 ## Resueltas
 | # | Decisión | Resolución | Dónde |
 |---|---|---|---|
-| D-001 | Lenguaje del backend | Backend en **Go** (no NestJS/TypeScript como planteaba la propuesta original). Stdlib `net/http`, `pgx`+`sqlc`, `go-redis`, `gorilla/websocket`, JWT, capas `internal/<dominio>`. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
+| D-001 | Lenguaje del backend | Backend en **Go**. Stdlib `net/http`, `pgx`+`sqlc`, `go-redis`, `gorilla/websocket`, JWT, capas `internal/<dominio>`. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
 
 ## Pendientes
 | # | Duda | Notas |

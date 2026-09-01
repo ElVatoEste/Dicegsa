@@ -16,7 +16,5 @@ Plataforma web reactiva, desacoplada y de alta concurrencia.
 - **Frontend:** Next.js + TypeScript, interfaces táctiles y de baja carga cognitiva para terminales de bodega.
 - **Infra:** VPS Linux de bajo consumo, acceso vía navegador en red local institucional. Stack open source, sin licenciamiento privativo.
 
-> Nota: la propuesta estratégica original ([PDF](../../Propuesta%20Estrat%C3%A9gica_%20Plataforma%20Web%20OLE%20y%20Kanban%20en%20CDF%20%28DICEGSA%29.pdf)) planteaba el backend en NestJS/TypeScript. Se reemplaza por Go — ver [D-001](../decisiones/POR-ACLARAR.md).
-
 ## Invariantes críticas
 1. <invariante>
