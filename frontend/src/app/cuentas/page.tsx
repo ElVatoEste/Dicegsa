@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { KeyRound, Power, UserPlus } from 'lucide-react';
 import { api, ErrorApi, type Cuenta, type RolSistema } from '@/lib/api';
+import { Conexion } from '@/components/Conexion';
 import { Marco } from '@/components/Marco';
+import { useEventos } from '@/lib/eventos';
 import { useSesion } from '@/lib/sesion';
 
 const ROLES: RolSistema[] = ['operario', 'supervisor', 'gerencia', 'admin'];
@@ -32,6 +34,12 @@ export default function Cuentas() {
     void recargar();
   }, [recargar]);
 
+  // El listado se refresca cuando otro administrador toca una cuenta, sin recargar
+  // la página.
+  const conexion = useEventos(token, (evento) => {
+    if (evento.sala === 'cuentas') void recargar();
+  });
+
   async function ejecutar(accion: () => Promise<unknown>) {
     setError(null);
     setOcupado(true);
@@ -52,6 +60,7 @@ export default function Cuentas() {
       titulo="Cuentas"
       descripcion="Las cuentas las crea y reinicia un administrador. No hay auto-registro ni recuperación por correo."
       rol={sesion.rol}
+      conexion={<Conexion estado={conexion} />}
     >
       {entrega && (
         <div className="mb-8 rounded-xl border border-aviso/30 bg-aviso-suave p-5">

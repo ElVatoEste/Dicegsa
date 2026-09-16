@@ -8,6 +8,7 @@ import {
   passwordAceptable,
   verificar,
 } from './passwords';
+import { puedeEscuchar, salasPara } from '../eventos/salas';
 
 const base: TokenPayload = {
   sub: 'id',
@@ -73,5 +74,24 @@ describe('nombre de cuenta', () => {
   test('no distingue mayúsculas ni espacios al borde', () => {
     expect(normalizarNombreCuenta('  JLopez ')).toBe('jlopez');
     expect(normalizarNombreCuenta('JLOPEZ')).toBe(normalizarNombreCuenta('jlopez'));
+  });
+});
+
+describe('salas de eventos', () => {
+  test('el admin escucha tablero y cuentas', () => {
+    expect(salasPara('admin')).toEqual(['tablero', 'cuentas']);
+  });
+
+  test('supervisión y gerencia escuchan el tablero, no las cuentas', () => {
+    for (const rol of ['supervisor', 'gerencia'] as const) {
+      expect(salasPara(rol)).toEqual(['tablero']);
+      expect(puedeEscuchar(rol, 'cuentas')).toBe(false);
+    }
+  });
+
+  test('el operario no escucha el tablero completo', () => {
+    expect(salasPara('operario')).toEqual([]);
+    expect(puedeEscuchar('operario', 'tablero')).toBe(false);
+    expect(puedeEscuchar('operario', 'cuentas')).toBe(false);
   });
 });

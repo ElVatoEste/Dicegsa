@@ -41,7 +41,18 @@ Cerrado el turno, el motor recorre los eventos: D desde turno menos paradas no i
 Cada orden lleva su ventana de entrega. El tablero ordena por tiempo restante relativo a esa ventana, no por antigüedad, y avisa cuando una orden se acerca a vencer. Una orden de 15 minutos recién ingresada es más urgente que una de 24 horas que lleva medio turno.
 
 **Tiempo real**
-Toda transición de estado y toda parada se publican por Redis pub/sub y se emiten a las terminales suscritas por WebSocket. El tablero de supervisión no hace polling.
+Toda transición de estado y toda parada se emiten por WebSocket a las conexiones suscritas. El tablero de supervisión no hace polling.
+
+El transporte es Socket.io sobre el mismo servidor HTTP de Fastify. La conexión se autentica con el JWT en el handshake y se rechaza si el token no verifica o si la contraseña sigue siendo la de un solo uso. Cada conexión entra a las salas que le corresponden por rol:
+
+| Sala | Contenido | Quién |
+|---|---|---|
+| `tablero` | Transiciones del Kanban y paradas. | supervisor, gerencia, admin |
+| `cuentas` | Altas, reseteos, cambios de rol y bajas. | admin |
+
+El operario no se suscribe al tablero completo: recibe sus propias órdenes por petición, porque suscribirlo a todo le filtraría el desempeño de sus compañeros.
+
+El reparto es en proceso. Una segunda instancia de API necesita el adaptador de Redis, porque cada proceso solo conoce sus propias conexiones — ver [D-006](../decisiones/POR-ACLARAR.md).
 
 ## Stack
 Plataforma web reactiva, desacoplada y de alta concurrencia.

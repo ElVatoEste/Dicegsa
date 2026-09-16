@@ -3,6 +3,8 @@ import { desc, eq, sql } from 'drizzle-orm';
 import type { RolSistema } from '../auth/acceso';
 import { generarPasswordInicial, hashear, normalizarNombreCuenta } from '../auth/passwords';
 import { DB, type Db, type Tx } from '../db/db.module';
+import { EventosGateway } from '../eventos/eventos.gateway';
+import { SALAS } from '../eventos/salas';
 import { cuentas, eventosAdmin } from '../db/schema';
 
 const CAMPOS_PUBLICOS = {
@@ -17,7 +19,18 @@ const CAMPOS_PUBLICOS = {
 
 @Injectable()
 export class CuentasService {
-  constructor(@Inject(DB) private readonly db: Db) {}
+  constructor(
+    @Inject(DB) private readonly db: Db,
+    private readonly eventos: EventosGateway,
+  ) {}
+
+  /**
+   * Se publica después de confirmar la transacción: emitir antes anunciaría un
+   * cambio que un error posterior deja sin aplicar.
+   */
+  private publicar(accion: string, cuenta: { id: string; nombreCuenta: string }) {
+    this.eventos.emitir(SALAS.cuentas, `cuenta.${accion}`, cuenta);
+  }
 
   listar() {
     return this.db.select(CAMPOS_PUBLICOS).from(cuentas).orderBy(cuentas.nombreCuenta);
@@ -53,6 +66,7 @@ export class CuentasService {
       return cuenta!;
     });
 
+    this.publicar('alta', creada);
     return { cuenta: creada, passwordInicial };
   }
 
@@ -78,18 +92,19 @@ export class CuentasService {
       return actualizada!;
     });
 
+    this.publicar('reseteo', cuenta);
     return { cuenta, passwordInicial };
   }
 
-  cambiarRol(actorId: string, cuentaId: string, rol: RolSistema) {
+  async cambiarRol(actorId: string, cuentaId: string, rol: RolSistema) {
     // Un administrador que se cambia el rol a sí mismo pierde el acceso administrativo
     // y ninguna ruta del API se lo devuelve.
     if (actorId === cuentaId) {
       throw new BadRequestException('No se puede cambiar el rol de la propia cuenta');
     }
-    return this.db.transaction(async (tx) => {
+    const cuenta = await this.db.transaction(async (tx) => {
       const previa = await this.exigirExistente(tx, cuentaId);
-      const [cuenta] = await tx
+      const [actualizada] = await tx
         .update(cuentas)
         .set({ rol, actualizadaEn: new Date() })
         .where(eq(cuentas.id, cuentaId))
@@ -101,21 +116,23 @@ export class CuentasService {
         accion: 'cambio_rol',
         detalle: { de: previa.rol, a: rol },
       });
-      return cuenta!;
+      return actualizada!;
     });
+    this.publicar('cambio_rol', cuenta);
+    return cuenta;
   }
 
   /**
    * Las cuentas se desactivan, nunca se borran: sus eventos de alisto y sus
    * cálculos de OLE tienen que seguir siendo trazables.
    */
-  cambiarEstado(actorId: string, cuentaId: string, activa: boolean) {
+  async cambiarEstado(actorId: string, cuentaId: string, activa: boolean) {
     if (actorId === cuentaId) {
       throw new BadRequestException('No se puede dar de baja la propia cuenta');
     }
-    return this.db.transaction(async (tx) => {
+    const cuenta = await this.db.transaction(async (tx) => {
       await this.exigirExistente(tx, cuentaId);
-      const [cuenta] = await tx
+      const [actualizada] = await tx
         .update(cuentas)
         .set({ activa, actualizadaEn: new Date() })
         .where(eq(cuentas.id, cuentaId))
@@ -127,8 +144,10 @@ export class CuentasService {
         accion: activa ? 'reactivacion' : 'baja',
         detalle: null,
       });
-      return cuenta!;
+      return actualizada!;
     });
+    this.publicar(activa ? 'reactivacion' : 'baja', cuenta);
+    return cuenta;
   }
 
   auditoria(limite = 200) {

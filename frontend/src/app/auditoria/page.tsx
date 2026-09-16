@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { api, ErrorApi, type Cuenta, type EventoAdmin } from '@/lib/api';
+import { Conexion } from '@/components/Conexion';
 import { Marco } from '@/components/Marco';
+import { useEventos } from '@/lib/eventos';
 import { useSesion } from '@/lib/sesion';
 
 const ETIQUETA: Record<EventoAdmin['accion'], string> = {
@@ -20,6 +22,23 @@ export default function Auditoria() {
   const [error, setError] = useState<string | null>(null);
 
   const token = sesion?.token;
+  const [recien, setRecien] = useState<Set<string>>(new Set());
+
+  // Toda acción administrativa llega por la sala "cuentas", así que se recarga el
+  // registro en lugar de reconstruirlo desde el evento: el servidor es la fuente.
+  // El listado de cuentas se recarga junto con él porque un alta trae un id que el
+  // mapa de nombres todavía no conoce, y la fila quedaría mostrando el id crudo.
+  const conexion = useEventos(token, (evento) => {
+    if (evento.sala !== 'cuentas' || !token) return;
+    void Promise.all([api.auditoria(token), api.cuentas(token)]).then(([registro, cuentas]) => {
+      setNombres(new Map(cuentas.map((c: Cuenta) => [c.id, c.nombreCuenta])));
+      setEventos((previos) => {
+        const conocidos = new Set(previos.map((e) => e.id));
+        setRecien(new Set(registro.filter((e) => !conocidos.has(e.id)).map((e) => e.id)));
+        return registro;
+      });
+    });
+  });
 
   useEffect(() => {
     if (!token) return;
@@ -42,6 +61,7 @@ export default function Auditoria() {
       titulo="Auditoría"
       descripcion="Toda acción de un administrador sobre una cuenta queda acá. Es la contrapartida de que pueda reiniciar la contraseña de cualquiera."
       rol={sesion.rol}
+      conexion={<Conexion estado={conexion} />}
     >
       {error && (
         <p role="alert" className="mb-6 rounded-lg bg-alerta-suave px-3 py-2.5 text-sm text-alerta">
@@ -58,7 +78,9 @@ export default function Auditoria() {
           {eventos.map((e) => (
             <li
               key={e.id}
-              className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-linea px-5 py-3.5 text-sm last:border-0"
+              className={`flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-linea px-5 py-3.5 text-sm last:border-0 ${
+                recien.has(e.id) ? 'bg-accion-suave' : ''
+              }`}
             >
               <span className="font-medium">{nombre(e.actorId)}</span>
               <span className="text-tinta-suave">{ETIQUETA[e.accion].toLowerCase()}</span>

@@ -16,6 +16,11 @@ Lo único que estaba especificado por completo y no dependía de ninguna duda ab
   obligatorio al primer ingreso, reseteo, auditoría, bajas por desactivación.
 - Esqueleto del proyecto: Bun, NestJS sobre Fastify, Drizzle, PostgreSQL, migraciones y
   pruebas. Sirve además de verificación del stack, que era la combinación menos transitada.
+- Consola de administración en [`../../frontend/`](../../frontend/): login, cambio de
+  contraseña, cuentas y auditoría.
+- Transporte de eventos en vivo por WebSocket (REQ-002), autenticado por JWT y con salas
+  por rol. Se estrena publicando las acciones de cuentas; las del tablero usan el mismo
+  canal cuando existan.
 - Código en [`../../backend/`](../../backend/).
 
 ## MVP — Kanban con captura de eventos (OE-3, parte 1)

@@ -48,6 +48,21 @@ cálculo de OLE no están escritas todavía: su forma depende de dudas abiertas 
 | `POST` | `/cuentas/:id/reactivacion` | admin |
 | `GET` | `/cuentas/auditoria` | admin |
 
+### Eventos en vivo
+
+Socket.io sobre el mismo servidor HTTP. El cliente manda el JWT en el handshake
+(`auth.token`); la conexión se corta si el token no verifica o si la contraseña sigue
+siendo la de un solo uso.
+
+| Sala | Contenido | Roles |
+|---|---|---|
+| `tablero` | Transiciones del Kanban y paradas. | supervisor, gerencia, admin |
+| `cuentas` | Altas, reseteos, cambios de rol y bajas. | admin |
+
+El servidor emite `listo` con las salas asignadas al conectar, y después `evento` con
+`{ tipo, sala, datos, emitidoEn }`. Hoy solo publica la sala `cuentas`; la sala `tablero`
+existe y no tiene emisores todavía.
+
 No hay `DELETE` de cuentas y no lo habrá: las bajas desactivan, para no romper la
 trazabilidad de los eventos que la cuenta produjo.
 

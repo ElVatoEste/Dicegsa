@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app.module';
 
 const app = await NestFactory.create<NestFastifyApplication>(
@@ -8,6 +9,8 @@ const app = await NestFactory.create<NestFastifyApplication>(
   new FastifyAdapter(),
 );
 app.enableCors();
+// Socket.io se monta sobre el servidor HTTP que expone Fastify, no sobre uno propio.
+app.useWebSocketAdapter(new IoAdapter(app));
 
 const port = Number(process.env.PORT ?? 7300);
 await app.listen({ port, host: '0.0.0.0' });

@@ -7,7 +7,7 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 | # | Requisito | Prioridad | Estado | Decisión |
 |---|---|---|---|---|
 | REQ-001 | Tablero Kanban de órdenes de alisto con estados y transiciones, operable desde terminal táctil. | Alta | Propuesto | — |
-| REQ-002 | Sincronización en tiempo real del tablero entre todas las terminales vía WebSocket. | Alta | Propuesto | D-001, D-006 |
+| REQ-002 | Sincronización en tiempo real del tablero entre todas las terminales vía WebSocket. | Alta | Hecho | D-001, D-006 |
 | REQ-003 | Cronometraje por orden y por línea, con marca de tiempo del servidor. | Alta | Propuesto | P-003 |
 | REQ-004 | Registro de bloqueo en un toque, seleccionando causa de un catálogo tipificado. | Alta | Propuesto | P-001 |
 | REQ-005 | Catálogo de causas de parada clasificadas como imputables / no imputables al colaborador. | Alta | Propuesto | P-001 |

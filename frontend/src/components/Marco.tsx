@@ -14,11 +14,13 @@ export function Marco({
   titulo,
   descripcion,
   rol,
+  conexion,
   children,
 }: {
   titulo: string;
   descripcion?: string;
   rol: RolSistema;
+  conexion?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const visibles = SECCIONES.filter((s) => (s.roles as readonly string[]).includes(rol));
@@ -45,16 +47,19 @@ export function Marco({
               </a>
             ))}
           </nav>
-          <button
+          <div className="ml-auto flex items-center gap-4">
+            {conexion}
+            <button
             onClick={() => {
               borrarSesion();
               window.location.href = '/';
             }}
-            className="ml-auto flex items-center gap-2 rounded-md px-3 py-2 text-sm text-tinta-suave transition-colors hover:bg-fondo hover:text-tinta"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-tinta-suave transition-colors hover:bg-fondo hover:text-tinta"
           >
             <LogOut size={16} aria-hidden />
             Salir
-          </button>
+            </button>
+          </div>
         </div>
       </header>
 
