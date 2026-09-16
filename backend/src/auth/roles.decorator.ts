@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
-import type { RolSistema } from './acceso';
+import type { SystemRole } from './access';
 
-export const ROLES_REQUERIDOS = 'roles_requeridos';
+export const REQUIRED_ROLES = 'required_roles';
 
-export const Roles = (...roles: RolSistema[]) => SetMetadata(ROLES_REQUERIDOS, roles);
+export const Roles = (...roles: SystemRole[]) => SetMetadata(REQUIRED_ROLES, roles);

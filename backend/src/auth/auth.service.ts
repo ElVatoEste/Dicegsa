@@ -2,14 +2,14 @@ import { BadRequestException, Inject, Injectable, UnauthorizedException } from '
 import { JwtService } from '@nestjs/jwt';
 import { eq, sql } from 'drizzle-orm';
 import { DB, type Db } from '../db/db.module';
-import { cuentas } from '../db/schema';
-import type { TokenPayload } from './acceso';
+import { accounts } from '../db/schema';
+import type { TokenPayload } from './access';
 import {
-  hashear,
-  normalizarNombreCuenta,
-  passwordAceptable,
-  LARGO_MINIMO,
-  verificar,
+  hashPassword,
+  isPasswordAcceptable,
+  MIN_LENGTH,
+  normalizeAccountName,
+  verifyPassword,
 } from './passwords';
 
 @Injectable()
@@ -19,63 +19,70 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) {}
 
-  async login(nombreCuenta: string, password: string) {
-    const [cuenta] = await this.db
+  async login(accountName: string, password: string) {
+    const [account] = await this.db
       .select()
-      .from(cuentas)
-      .where(eq(sql`lower(${cuentas.nombreCuenta})`, normalizarNombreCuenta(nombreCuenta)))
+      .from(accounts)
+      .where(eq(sql`lower(${accounts.accountName})`, normalizeAccountName(accountName)))
       .limit(1);
 
     // Mismo mensaje para cuenta inexistente y contraseña equivocada: distinguirlos
     // permitiría enumerar qué nombres de cuenta existen.
-    const invalidas = new UnauthorizedException('Credenciales inválidas');
-    if (!cuenta) {
-      await verificar(password, HASH_SEÑUELO).catch(() => false);
-      throw invalidas;
+    const invalid = new UnauthorizedException('Credenciales inválidas');
+    if (!account) {
+      await verifyPassword(password, DECOY_HASH).catch(() => false);
+      throw invalid;
     }
-    if (!(await verificar(password, cuenta.hashPassword))) throw invalidas;
-    if (!cuenta.activa) throw new UnauthorizedException('Cuenta desactivada');
+    if (!(await verifyPassword(password, account.passwordHash))) throw invalid;
+    if (!account.active) throw new UnauthorizedException('Cuenta desactivada');
 
     const payload: TokenPayload = {
-      sub: cuenta.id,
-      nombreCuenta: cuenta.nombreCuenta,
-      rol: cuenta.rol,
-      debeCambiarPassword: cuenta.debeCambiarPassword,
+      sub: account.id,
+      accountName: account.accountName,
+      role: account.role,
+      mustChangePassword: account.mustChangePassword,
     };
     return {
       token: await this.jwt.signAsync(payload),
-      debeCambiarPassword: cuenta.debeCambiarPassword,
-      rol: cuenta.rol,
+      accountName: account.accountName,
+      mustChangePassword: account.mustChangePassword,
+      role: account.role,
     };
   }
 
-  async cambiarPassword(cuentaId: string, passwordActual: string, passwordNueva: string) {
-    const [cuenta] = await this.db.select().from(cuentas).where(eq(cuentas.id, cuentaId)).limit(1);
-    if (!cuenta) throw new UnauthorizedException('Credenciales inválidas');
-    if (!(await verificar(passwordActual, cuenta.hashPassword))) {
+  async changePassword(accountId: string, currentPassword: string, newPassword: string) {
+    const [account] = await this.db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.id, accountId))
+      .limit(1);
+    if (!account) throw new UnauthorizedException('Credenciales inválidas');
+    if (!(await verifyPassword(currentPassword, account.passwordHash))) {
       throw new UnauthorizedException('La contraseña actual no coincide');
     }
-    if (!passwordAceptable(passwordNueva)) {
-      throw new BadRequestException(`La contraseña nueva necesita al menos ${LARGO_MINIMO} caracteres`);
+    if (!isPasswordAcceptable(newPassword)) {
+      throw new BadRequestException(
+        `La contraseña nueva necesita al menos ${MIN_LENGTH} caracteres`,
+      );
     }
-    if (await verificar(passwordNueva, cuenta.hashPassword)) {
+    if (await verifyPassword(newPassword, account.passwordHash)) {
       throw new BadRequestException('La contraseña nueva tiene que ser distinta de la actual');
     }
 
     await this.db
-      .update(cuentas)
+      .update(accounts)
       .set({
-        hashPassword: await hashear(passwordNueva),
-        debeCambiarPassword: false,
-        actualizadaEn: new Date(),
+        passwordHash: await hashPassword(newPassword),
+        mustChangePassword: false,
+        updatedAt: new Date(),
       })
-      .where(eq(cuentas.id, cuentaId));
+      .where(eq(accounts.id, accountId));
 
     const payload: TokenPayload = {
-      sub: cuenta.id,
-      nombreCuenta: cuenta.nombreCuenta,
-      rol: cuenta.rol,
-      debeCambiarPassword: false,
+      sub: account.id,
+      accountName: account.accountName,
+      role: account.role,
+      mustChangePassword: false,
     };
     return { token: await this.jwt.signAsync(payload) };
   }
@@ -85,5 +92,5 @@ export class AuthService {
  * Hash descartable contra el que se verifica cuando la cuenta no existe, para que
  * el login tarde lo mismo exista o no y no se pueda enumerar por tiempo de respuesta.
  */
-const HASH_SEÑUELO =
+const DECOY_HASH =
   '$argon2id$v=19$m=65536,t=2,p=1$c2VudGluZWxhc2VudGluZWxh$Q2FyZ2FEZXNjYXJ0YWJsZVBhcmFUaW1pbmc';

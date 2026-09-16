@@ -1,96 +1,99 @@
 'use client';
 
 import { useState } from 'react';
-import { LogIn } from 'lucide-react';
-import { api, ErrorApi } from '@/lib/api';
-import { guardarSesion } from '@/lib/sesion';
+import { ApiError, authApi } from '@/lib/api';
+import { Logo } from '@/components/Logo';
+import { useToast } from '@/components/Toasts';
+import { Button, Field, Input } from '@/components/ui';
+import { saveSession } from '@/lib/session';
 
-export default function Login() {
-  const [nombreCuenta, setNombreCuenta] = useState('');
+export default function LoginPage() {
+  const [accountName, setAccountName] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [enviando, setEnviando] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const toast = useToast();
 
-  async function enviar(evento: React.FormEvent) {
-    evento.preventDefault();
-    setError(null);
-    setEnviando(true);
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
     try {
-      const sesion = await api.login(nombreCuenta, password);
-      guardarSesion(sesion);
-      window.location.href = sesion.debeCambiarPassword
+      const session = await authApi.login(accountName, password);
+      saveSession(session);
+      window.location.href = session.mustChangePassword
         ? '/cambiar-password/'
-        : sesion.rol === 'admin'
+        : session.role === 'admin'
           ? '/cuentas/'
           : '/tablero/';
     } catch (e) {
-      setError(e instanceof ErrorApi ? e.message : 'No se pudo conectar con el servidor');
-      setEnviando(false);
+      toast.error(e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor');
+      setSubmitting(false);
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-12">
-      <div className="w-full max-w-sm">
-        <div className="mb-8">
-          <p className="text-sm font-semibold tracking-tight">CDF · DICEGSA</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Evaluación operativa</h1>
-          <p className="mt-1 text-sm text-tinta-suave">
-            Ingresá con el nombre de cuenta que te entregó el administrador.
+    <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-indigo-800 p-12 lg:flex">
+        <Logo tone="dark" />
+        <div className="max-w-md">
+          <p className="text-3xl font-semibold leading-tight tracking-tight text-white">
+            El tiempo que no dependió de vos, no te lo descuenta.
+          </p>
+          <p className="mt-4 text-sm leading-relaxed text-white/60">
+            Las órdenes se siguen en el tablero y los bloqueos se registran cuando ocurren, así el
+            desempeño se mide por lo que cada quien pudo hacer.
           </p>
         </div>
+        <div
+          aria-hidden
+          className="absolute -bottom-32 -right-24 size-96 rounded-full bg-cyan-500/12 blur-3xl"
+        />
+      </div>
 
-        <form onSubmit={enviar} className="rounded-xl border border-linea bg-panel p-6 shadow-sm">
-          <label className="block text-sm font-medium" htmlFor="nombreCuenta">
-            Nombre de cuenta
-          </label>
-          <input
-            id="nombreCuenta"
-            value={nombreCuenta}
-            onChange={(e) => setNombreCuenta(e.target.value)}
-            autoComplete="username"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            required
-            className="mt-1.5 w-full rounded-lg border border-linea px-3 text-base outline-none focus:border-accion"
-          />
+      <div className="flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden">
+            <Logo />
+          </div>
 
-          <label className="mt-5 block text-sm font-medium" htmlFor="password">
-            Contraseña
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-            className="mt-1.5 w-full rounded-lg border border-linea px-3 text-base outline-none focus:border-accion"
-          />
+          <h1 className="mt-8 text-2xl font-semibold tracking-tight lg:mt-0">Ingresar</h1>
+          <p className="mt-1 text-sm text-muted">
+            Usá el nombre de cuenta que te entregó el administrador.
+          </p>
 
-          {error && (
-            <p
-              role="alert"
-              className="mt-5 rounded-lg bg-alerta-suave px-3 py-2.5 text-sm text-alerta"
-            >
-              {error}
-            </p>
-          )}
+          <form onSubmit={submit} className="mt-8 space-y-5">
+            <Field label="Nombre de cuenta" htmlFor="accountName">
+              <Input
+                id="accountName"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                required
+              />
+            </Field>
 
-          <button
-            type="submit"
-            disabled={enviando}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-accion px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            <LogIn size={16} aria-hidden />
-            {enviando ? 'Ingresando…' : 'Ingresar'}
-          </button>
-        </form>
+            <Field label="Contraseña" htmlFor="password">
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </Field>
 
-        <p className="mt-6 text-center text-xs text-tinta-suave">
-          ¿Olvidaste la contraseña? El administrador la reinicia y te la entrega.
-        </p>
+            <Button type="submit" loading={submitting} className="w-full">
+              {submitting ? 'Ingresando' : 'Ingresar'}
+            </Button>
+          </form>
+
+          <p className="mt-8 text-sm text-muted">
+            Si olvidaste la contraseña, el administrador la reinicia y te entrega una nueva.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,232 +1,255 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { KeyRound, Power, UserPlus } from 'lucide-react';
-import { api, ErrorApi, type Cuenta, type RolSistema } from '@/lib/api';
-import { Conexion } from '@/components/Conexion';
-import { Marco } from '@/components/Marco';
-import { useEventos } from '@/lib/eventos';
-import { useSesion } from '@/lib/sesion';
+import { KeyRound, Power, UserPlus, Users } from 'lucide-react';
+import { accountsApi, ApiError, type Account, type SystemRole } from '@/lib/api';
+import { useAuthGuard } from '@/components/AuthGuard';
+import { ConnectionStatus } from '@/components/ConnectionStatus';
+import { Shell } from '@/components/Shell';
+import { useToast } from '@/components/Toasts';
+import { Badge, Button, EmptyState, Field, Input, Select, Table, Td, Th } from '@/components/ui';
+import { ROLE_LABEL, ROLES } from '@/lib/labels';
+import { useRealtime } from '@/lib/events';
 
-const ROLES: RolSistema[] = ['operario', 'supervisor', 'gerencia', 'admin'];
+interface Handover {
+  accountName: string;
+  password: string;
+}
 
-export default function Cuentas() {
-  const { sesion } = useSesion(['admin']);
-  const [cuentas, setCuentas] = useState<Cuenta[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [entrega, setEntrega] = useState<{ nombreCuenta: string; password: string } | null>(null);
-  const [nombreNuevo, setNombreNuevo] = useState('');
-  const [rolNuevo, setRolNuevo] = useState<RolSistema>('operario');
-  const [ocupado, setOcupado] = useState(false);
+export default function AccountsPage() {
+  const session = useAuthGuard(['admin']);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [handover, setHandover] = useState<Handover | null>(null);
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState<SystemRole>('operator');
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
-  const token = sesion?.token;
+  const token = session?.token;
 
-  const recargar = useCallback(async () => {
+  const reload = useCallback(async () => {
     if (!token) return;
     try {
-      setCuentas(await api.cuentas(token));
+      setAccounts(await accountsApi.list(token));
     } catch (e) {
-      setError(e instanceof ErrorApi ? e.message : 'No se pudo leer el listado');
+      toast.error(e instanceof ApiError ? e.message : 'No se pudo leer el listado');
     }
+    // toast viene de un contexto estable; incluirlo rearmaría el efecto en cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   useEffect(() => {
-    void recargar();
-  }, [recargar]);
+    void reload();
+  }, [reload]);
 
   // El listado se refresca cuando otro administrador toca una cuenta, sin recargar
   // la página.
-  const conexion = useEventos(token, (evento) => {
-    if (evento.sala === 'cuentas') void recargar();
+  const connection = useRealtime(token, (event) => {
+    if (event.room === 'accounts') void reload();
   });
 
-  async function ejecutar(accion: () => Promise<unknown>) {
-    setError(null);
-    setOcupado(true);
+  async function run(action: () => Promise<unknown>) {
+    setBusy(true);
     try {
-      await accion();
-      await recargar();
+      await action();
+      await reload();
     } catch (e) {
-      setError(e instanceof ErrorApi ? e.message : 'No se pudo completar la operación');
+      toast.error(e instanceof ApiError ? e.message : 'No se pudo completar la operación');
     } finally {
-      setOcupado(false);
+      setBusy(false);
     }
   }
 
-  if (!sesion) return null;
+  if (!session) return null;
 
   return (
-    <Marco
-      titulo="Cuentas"
-      descripcion="Las cuentas las crea y reinicia un administrador. No hay auto-registro ni recuperación por correo."
-      rol={sesion.rol}
-      conexion={<Conexion estado={conexion} />}
+    <Shell
+      title="Cuentas"
+      subtitle="Las cuentas las crea y reinicia un administrador. No hay auto-registro ni recuperación por correo."
+      role={session.role}
+      accountName={session.accountName}
+      status={<ConnectionStatus state={connection} />}
     >
-      {entrega && (
-        <div className="mb-8 rounded-xl border border-aviso/30 bg-aviso-suave p-5">
-          <p className="text-sm font-medium text-aviso">
-            Entregá esta contraseña a {entrega.nombreCuenta}
-          </p>
-          <p className="mt-3 font-mono text-2xl tracking-wider text-tinta">{entrega.password}</p>
-          <p className="mt-3 text-xs text-aviso">
+      {handover && (
+        // El único momento en que algo del sistema pasa de una persona a otra en
+        // mano, así que se lee de lejos y no se confunde con un aviso más.
+        <div className="mb-8 overflow-hidden rounded-xl bg-indigo-800">
+          <div className="flex flex-wrap items-center justify-between gap-6 px-6 py-5">
+            <div>
+              <p className="text-sm text-white/60">Contraseña para {handover.accountName}</p>
+              <p className="cifras mt-2 text-4xl font-semibold tracking-[0.14em] text-white">
+                {handover.password}
+              </p>
+            </div>
+            <Button variant="secondary" onClick={() => setHandover(null)}>
+              Ya la entregué
+            </Button>
+          </div>
+          <p className="border-t border-white/10 px-6 py-3 text-xs text-white/55">
             Se muestra una sola vez y sirve una sola vez: al ingresar se le pide cambiarla. Si se
             pierde, hay que reiniciarla de nuevo.
           </p>
-          <button
-            onClick={() => setEntrega(null)}
-            className="mt-4 rounded-lg border border-aviso/30 bg-panel px-3 text-sm font-medium text-aviso"
-          >
-            Ya la entregué
-          </button>
         </div>
       )}
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (!token || !nombreNuevo.trim()) return;
-          void ejecutar(async () => {
-            const { cuenta, passwordInicial } = await api.crearCuenta(token, nombreNuevo, rolNuevo);
-            setEntrega({ nombreCuenta: cuenta.nombreCuenta, password: passwordInicial });
-            setNombreNuevo('');
-            setRolNuevo('operario');
+          if (!token || !newName.trim()) return;
+          void run(async () => {
+            const created = await accountsApi.create(token, newName, newRole);
+            setHandover({
+              accountName: created.account.accountName,
+              password: created.initialPassword,
+            });
+            toast.success(`Cuenta ${created.account.accountName} creada`);
+            setNewName('');
+            setNewRole('operator');
           });
         }}
-        className="mb-8 flex flex-wrap items-end gap-3 rounded-xl border border-linea bg-panel p-5"
+        className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-line bg-surface p-5"
       >
-        <div className="grow basis-56">
-          <label className="block text-sm font-medium" htmlFor="nuevo">
-            Nombre de cuenta
-          </label>
-          <input
-            id="nuevo"
-            value={nombreNuevo}
-            onChange={(e) => setNombreNuevo(e.target.value)}
+        <Field label="Nombre de cuenta" htmlFor="newName" className="grow basis-56">
+          <Input
+            id="newName"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
             placeholder="jlopez"
             autoCapitalize="none"
             spellCheck={false}
-            className="mt-1.5 w-full rounded-lg border border-linea px-3 text-base outline-none focus:border-accion"
           />
-        </div>
-        <div className="basis-44">
-          <label className="block text-sm font-medium" htmlFor="rolNuevo">
-            Rol
-          </label>
-          <select
-            id="rolNuevo"
-            value={rolNuevo}
-            onChange={(e) => setRolNuevo(e.target.value as RolSistema)}
-            className="mt-1.5 w-full rounded-lg border border-linea bg-panel px-3 text-base outline-none focus:border-accion"
+        </Field>
+        <Field label="Rol" htmlFor="newRole" className="basis-44">
+          <Select
+            id="newRole"
+            value={newRole}
+            onChange={(e) => setNewRole(e.target.value as SystemRole)}
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
-                {r}
+                {ROLE_LABEL[r]}
               </option>
             ))}
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={ocupado || !nombreNuevo.trim()}
-          className="flex items-center gap-2 rounded-lg bg-accion px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
+          </Select>
+        </Field>
+        <Button type="submit" disabled={!newName.trim()} loading={busy}>
           <UserPlus size={16} aria-hidden />
-          Crear
-        </button>
+          Crear cuenta
+        </Button>
       </form>
 
-      {error && (
-        <p role="alert" className="mb-6 rounded-lg bg-alerta-suave px-3 py-2.5 text-sm text-alerta">
-          {error}
-        </p>
-      )}
-
-      <div className="overflow-x-auto rounded-xl border border-linea bg-panel">
-        <table className="w-full min-w-2xl text-sm">
-          <thead className="border-b border-linea text-left text-xs uppercase tracking-wide text-tinta-suave">
+      {accounts.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="Todavía no hay cuentas"
+          description="Creá la primera con el formulario de arriba y entregá la contraseña en mano."
+        />
+      ) : (
+        <Table>
+          <thead>
             <tr>
-              <th className="px-5 py-3 font-medium">Cuenta</th>
-              <th className="px-5 py-3 font-medium">Rol</th>
-              <th className="px-5 py-3 font-medium">Estado</th>
-              <th className="px-5 py-3 text-right font-medium">Acciones</th>
+              <Th>Cuenta</Th>
+              <Th>Rol</Th>
+              <Th>Estado</Th>
+              <Th className="text-right">Acciones</Th>
             </tr>
           </thead>
           <tbody>
-            {cuentas.map((c) => (
-              <tr key={c.id} className="border-b border-linea last:border-0">
-                <td className="px-5 py-3.5">
-                  <span className="font-medium">{c.nombreCuenta}</span>
-                  {c.debeCambiarPassword && (
-                    <span className="ml-2 rounded-full bg-aviso-suave px-2 py-0.5 text-xs text-aviso">
+            {accounts.map((account) => (
+              <tr key={account.id}>
+                <Td>
+                  <span className="font-medium">{account.accountName}</span>
+                  {account.mustChangePassword && (
+                    <Badge tone="warning" className="ml-2">
                       contraseña sin cambiar
-                    </span>
+                    </Badge>
                   )}
-                </td>
-                <td className="px-5 py-3.5">
-                  <select
-                    value={c.rol}
-                    disabled={ocupado}
-                    onChange={(e) =>
-                      token &&
-                      void ejecutar(() =>
-                        api.cambiarRol(token, c.id, e.target.value as RolSistema),
-                      )
-                    }
-                    className="rounded-lg border border-linea bg-panel px-2 text-sm outline-none focus:border-accion"
+                </Td>
+                <Td>
+                  <Select
+                    value={account.role}
+                    size="sm"
+                    disabled={busy}
+                    className="w-44"
+                    onChange={(e) => {
+                      if (!token) return;
+                      const role = e.target.value as SystemRole;
+                      void run(async () => {
+                        await accountsApi.changeRole(token, account.id, role);
+                        toast.success(
+                          `${account.accountName} ahora es ${ROLE_LABEL[role].toLowerCase()}`,
+                        );
+                      });
+                    }}
                   >
                     {ROLES.map((r) => (
                       <option key={r} value={r}>
-                        {r}
+                        {ROLE_LABEL[r]}
                       </option>
                     ))}
-                  </select>
-                </td>
-                <td className="px-5 py-3.5">
-                  <span className={c.activa ? 'text-accion' : 'text-tinta-suave'}>
-                    {c.activa ? 'Activa' : 'Dada de baja'}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5">
+                  </Select>
+                </Td>
+                <Td>
+                  {account.active ? (
+                    <Badge tone="success">Activa</Badge>
+                  ) : (
+                    <Badge tone="neutral">Dada de baja</Badge>
+                  )}
+                </Td>
+                <Td>
                   <div className="flex justify-end gap-2">
-                    <button
-                      disabled={ocupado}
-                      onClick={() =>
-                        token &&
-                        void ejecutar(async () => {
-                          const { cuenta, passwordInicial } = await api.resetear(token, c.id);
-                          setEntrega({
-                            nombreCuenta: cuenta.nombreCuenta,
-                            password: passwordInicial,
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => {
+                        if (!token) return;
+                        void run(async () => {
+                          const reset = await accountsApi.resetPassword(token, account.id);
+                          setHandover({
+                            accountName: reset.account.accountName,
+                            password: reset.initialPassword,
                           });
-                        })
-                      }
-                      className="flex items-center gap-1.5 rounded-lg border border-linea px-3 text-sm transition-colors hover:bg-fondo disabled:opacity-50"
+                          toast.warning(
+                            `Entregale la contraseña nueva a ${reset.account.accountName}`,
+                          );
+                        });
+                      }}
                     >
                       <KeyRound size={14} aria-hidden />
                       Reiniciar
-                    </button>
-                    <button
-                      disabled={ocupado}
-                      onClick={() =>
-                        token && void ejecutar(() => api.cambiarEstado(token, c.id, !c.activa))
-                      }
-                      className="flex items-center gap-1.5 rounded-lg border border-linea px-3 text-sm transition-colors hover:bg-fondo disabled:opacity-50"
+                    </Button>
+                    <Button
+                      variant={account.active ? 'danger' : 'secondary'}
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => {
+                        if (!token) return;
+                        void run(async () => {
+                          await accountsApi.setActive(token, account.id, !account.active);
+                          toast.success(
+                            account.active
+                              ? `${account.accountName} quedó dada de baja`
+                              : `${account.accountName} vuelve a estar activa`,
+                          );
+                        });
+                      }}
                     >
                       <Power size={14} aria-hidden />
-                      {c.activa ? 'Dar de baja' : 'Reactivar'}
-                    </button>
+                      {account.active ? 'Dar de baja' : 'Reactivar'}
+                    </Button>
                   </div>
-                </td>
+                </Td>
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      )}
 
-      <p className="mt-4 text-xs text-tinta-suave">
+      <p className="mt-4 text-xs text-muted">
         Las cuentas se dan de baja, nunca se borran: sus eventos de alisto tienen que seguir siendo
         trazables.
       </p>
-    </Marco>
+    </Shell>
   );
 }

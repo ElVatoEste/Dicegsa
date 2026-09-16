@@ -3,6 +3,13 @@
 Plataforma OLE y Kanban para el almacén CDF (DICEGSA). Antes de tocar nada, leer
 [`docs/producto/PRODUCTO.md`](docs/producto/PRODUCTO.md).
 
+## Idioma
+
+- **Código, datos y contrato del API en inglés:** identificadores, columnas, enums y campos
+  JSON. Nada de `accountName` junto a `contraseña` en la misma firma.
+- **Comentarios y textos de interfaz en español.** Las etiquetas visibles se traducen en
+  [`frontend/src/lib/labels.ts`](frontend/src/lib/labels.ts), no en el modelo.
+
 ## Comentarios en el código
 
 Rige [`docs/decisiones/POLITICA-COMENTARIOS.md`](docs/decisiones/POLITICA-COMENTARIOS.md),
@@ -27,7 +34,9 @@ de cumplimiento obligatorio al escribir, revisar o auditar código. En corto:
 ## Código
 
 - Backend en [`backend/`](backend/): Bun, NestJS sobre Fastify, Drizzle, PostgreSQL.
-- Frontend en [`frontend/`](frontend/): Next.js en modo export estático.
+- Frontend en [`frontend/`](frontend/): Next.js en modo export estático. Kit propio en
+  `components/ui`, cliente del API en `lib/api` con `ApiService` y `PATHS`, avisos de estado
+  por overlay y nunca insertados en la página.
 - Puertos propios: API `7300`, PostgreSQL `7432`, frontend `7301`.
 - El stack de la propuesta aprobada (NestJS, Next.js, PostgreSQL) no se cambia por
   alternativas técnicamente mejores; ver el criterio de stack en `POR-ACLARAR.md`.

@@ -2,24 +2,24 @@
  * Alfabeto sin caracteres que se confunden al leerlos de un papel y teclearlos
  * en un handheld: se excluyen O, 0, I, l y 1.
  */
-const ALFABETO = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
 
-export const LARGO_MINIMO = 8;
-const LARGO_GENERADA = 10;
+export const MIN_LENGTH = 8;
+const GENERATED_LENGTH = 10;
 
 /** Contraseña inicial de un solo uso. La entrega el administrador en mano. */
-export function generarPasswordInicial(largo = LARGO_GENERADA): string {
-  const bytes = crypto.getRandomValues(new Uint32Array(largo));
-  let salida = '';
-  for (const b of bytes) salida += ALFABETO[b % ALFABETO.length];
-  return salida;
+export function generateInitialPassword(length = GENERATED_LENGTH): string {
+  const bytes = crypto.getRandomValues(new Uint32Array(length));
+  let out = '';
+  for (const b of bytes) out += ALPHABET[b % ALPHABET.length];
+  return out;
 }
 
-export function hashear(password: string): Promise<string> {
+export function hashPassword(password: string): Promise<string> {
   return Bun.password.hash(password, { algorithm: 'argon2id' });
 }
 
-export function verificar(password: string, hash: string): Promise<boolean> {
+export function verifyPassword(password: string, hash: string): Promise<boolean> {
   return Bun.password.verify(password, hash);
 }
 
@@ -28,11 +28,11 @@ export function verificar(password: string, hash: string): Promise<boolean> {
  * se opera de pie y con una mano ocupada termina en contraseñas anotadas en un
  * papel pegado al handheld.
  */
-export function passwordAceptable(password: string): boolean {
-  return password.length >= LARGO_MINIMO;
+export function isPasswordAcceptable(password: string): boolean {
+  return password.length >= MIN_LENGTH;
 }
 
 /** El nombre de cuenta no distingue mayúsculas: se normaliza antes de guardar y de buscar. */
-export function normalizarNombreCuenta(nombre: string): string {
-  return nombre.trim().toLowerCase();
+export function normalizeAccountName(name: string): string {
+  return name.trim().toLowerCase();
 }

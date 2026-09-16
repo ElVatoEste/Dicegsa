@@ -1,97 +1,97 @@
 import { describe, expect, test } from 'bun:test';
-import { puedeAcceder, RUTA_CAMBIO_PASSWORD, type TokenPayload } from './acceso';
+import { canAccess, PASSWORD_ROUTE, type TokenPayload } from './access';
 import {
-  generarPasswordInicial,
-  hashear,
-  LARGO_MINIMO,
-  normalizarNombreCuenta,
-  passwordAceptable,
-  verificar,
+  generateInitialPassword,
+  hashPassword,
+  isPasswordAcceptable,
+  MIN_LENGTH,
+  normalizeAccountName,
+  verifyPassword,
 } from './passwords';
-import { puedeEscuchar, salasPara } from '../eventos/salas';
+import { canListen, roomsFor } from '../events/rooms';
 
 const base: TokenPayload = {
   sub: 'id',
-  nombreCuenta: 'jlopez',
-  rol: 'operario',
-  debeCambiarPassword: false,
+  accountName: 'jlopez',
+  role: 'operator',
+  mustChangePassword: false,
 };
 
 describe('puerta de primer ingreso', () => {
   test('con la contraseña ya cambiada se llega a cualquier ruta', () => {
-    expect(puedeAcceder(base, '/cuentas')).toBe(true);
-    expect(puedeAcceder(base, '/auth/me')).toBe(true);
+    expect(canAccess(base, '/accounts')).toBe(true);
+    expect(canAccess(base, '/auth/me')).toBe(true);
   });
 
   test('con contraseña de un solo uso solo se llega al cambio', () => {
-    const pendiente = { ...base, debeCambiarPassword: true };
-    expect(puedeAcceder(pendiente, RUTA_CAMBIO_PASSWORD)).toBe(true);
-    expect(puedeAcceder(pendiente, '/auth/password/')).toBe(true);
-    expect(puedeAcceder(pendiente, '/auth/password?x=1')).toBe(true);
-    expect(puedeAcceder(pendiente, '/auth/me')).toBe(false);
-    expect(puedeAcceder(pendiente, '/cuentas')).toBe(false);
+    const pending = { ...base, mustChangePassword: true };
+    expect(canAccess(pending, PASSWORD_ROUTE)).toBe(true);
+    expect(canAccess(pending, '/auth/password/')).toBe(true);
+    expect(canAccess(pending, '/auth/password?x=1')).toBe(true);
+    expect(canAccess(pending, '/auth/me')).toBe(false);
+    expect(canAccess(pending, '/accounts')).toBe(false);
   });
 
   test('un admin con contraseña de un solo uso tampoco pasa', () => {
-    const admin = { ...base, rol: 'admin' as const, debeCambiarPassword: true };
-    expect(puedeAcceder(admin, '/cuentas')).toBe(false);
+    const admin = { ...base, role: 'admin' as const, mustChangePassword: true };
+    expect(canAccess(admin, '/accounts')).toBe(false);
   });
 });
 
 describe('contraseñas', () => {
   test('la generada evita caracteres que se confunden al teclear', () => {
     for (let i = 0; i < 200; i++) {
-      expect(generarPasswordInicial()).not.toMatch(/[O0Il1]/);
+      expect(generateInitialPassword()).not.toMatch(/[O0Il1]/);
     }
   });
 
   test('la generada tiene el largo pedido y no se repite', () => {
-    expect(generarPasswordInicial()).toHaveLength(10);
-    expect(generarPasswordInicial(16)).toHaveLength(16);
-    const muestras = new Set(Array.from({ length: 100 }, () => generarPasswordInicial()));
-    expect(muestras.size).toBe(100);
+    expect(generateInitialPassword()).toHaveLength(10);
+    expect(generateInitialPassword(16)).toHaveLength(16);
+    const samples = new Set(Array.from({ length: 100 }, () => generateInitialPassword()));
+    expect(samples.size).toBe(100);
   });
 
   test('la generada pasa el mínimo que exige el cambio', () => {
-    expect(passwordAceptable(generarPasswordInicial())).toBe(true);
+    expect(isPasswordAcceptable(generateInitialPassword())).toBe(true);
   });
 
   test('el mínimo es largo y nada más', () => {
-    expect(passwordAceptable('a'.repeat(LARGO_MINIMO))).toBe(true);
-    expect(passwordAceptable('a'.repeat(LARGO_MINIMO - 1))).toBe(false);
+    expect(isPasswordAcceptable('a'.repeat(MIN_LENGTH))).toBe(true);
+    expect(isPasswordAcceptable('a'.repeat(MIN_LENGTH - 1))).toBe(false);
   });
 
   test('el hash es argon2id y verifica de ida y vuelta', async () => {
-    const hash = await hashear('bodega-2026');
+    const hash = await hashPassword('bodega-2026');
     expect(hash).toStartWith('$argon2id$');
     expect(hash).not.toContain('bodega-2026');
-    expect(await verificar('bodega-2026', hash)).toBe(true);
-    expect(await verificar('bodega-2025', hash)).toBe(false);
+    expect(await verifyPassword('bodega-2026', hash)).toBe(true);
+    expect(await verifyPassword('bodega-2025', hash)).toBe(false);
   });
 });
 
 describe('nombre de cuenta', () => {
   test('no distingue mayúsculas ni espacios al borde', () => {
-    expect(normalizarNombreCuenta('  JLopez ')).toBe('jlopez');
-    expect(normalizarNombreCuenta('JLOPEZ')).toBe(normalizarNombreCuenta('jlopez'));
+    expect(normalizeAccountName('  JLopez ')).toBe('jlopez');
+    expect(normalizeAccountName('JLOPEZ')).toBe(normalizeAccountName('jlopez'));
   });
 });
 
 describe('salas de eventos', () => {
-  test('el admin escucha tablero y cuentas', () => {
-    expect(salasPara('admin')).toEqual(['tablero', 'cuentas']);
+  test('el admin escucha el tablero y las cuentas', () => {
+    expect(roomsFor('admin')).toEqual(['board', 'accounts']);
   });
 
   test('supervisión y gerencia escuchan el tablero, no las cuentas', () => {
-    for (const rol of ['supervisor', 'gerencia'] as const) {
-      expect(salasPara(rol)).toEqual(['tablero']);
-      expect(puedeEscuchar(rol, 'cuentas')).toBe(false);
+    for (const role of ['supervisor', 'management'] as const) {
+      expect(roomsFor(role)).toEqual(['board']);
+      expect(canListen(role, 'accounts')).toBe(false);
     }
   });
 
   test('el operario no escucha el tablero completo', () => {
-    expect(salasPara('operario')).toEqual([]);
-    expect(puedeEscuchar('operario', 'tablero')).toBe(false);
-    expect(puedeEscuchar('operario', 'cuentas')).toBe(false);
+    expect(roomsFor('operator')).toEqual([]);
+    expect(canListen('operator', 'board')).toBe(false);
+    expect(canListen('operator', 'accounts')).toBe(false);
   });
 });

@@ -1,106 +1,108 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { api, ErrorApi, type Cuenta, type EventoAdmin } from '@/lib/api';
-import { Conexion } from '@/components/Conexion';
-import { Marco } from '@/components/Marco';
-import { useEventos } from '@/lib/eventos';
-import { useSesion } from '@/lib/sesion';
+import { useCallback, useEffect, useState } from 'react';
+import { ScrollText } from 'lucide-react';
+import { accountsApi, ApiError, type Account, type AdminEvent } from '@/lib/api';
+import { useAuthGuard } from '@/components/AuthGuard';
+import { ConnectionStatus } from '@/components/ConnectionStatus';
+import { Shell } from '@/components/Shell';
+import { useToast } from '@/components/Toasts';
+import { Badge, EmptyState } from '@/components/ui';
+import { ACTION_LABEL, DETAIL_LABEL } from '@/lib/labels';
+import { useRealtime } from '@/lib/events';
 
-const ETIQUETA: Record<EventoAdmin['accion'], string> = {
-  alta: 'Creó la cuenta',
-  reseteo: 'Reinició la contraseña',
-  cambio_rol: 'Cambió el rol',
-  baja: 'Dio de baja',
-  reactivacion: 'Reactivó',
-};
+export default function AuditLogPage() {
+  const session = useAuthGuard(['admin']);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
+  const [names, setNames] = useState<Map<string, string>>(new Map());
+  const [fresh, setFresh] = useState<Set<string>>(new Set());
+  const toast = useToast();
 
-export default function Auditoria() {
-  const { sesion } = useSesion(['admin']);
-  const [eventos, setEventos] = useState<EventoAdmin[]>([]);
-  const [nombres, setNombres] = useState<Map<string, string>>(new Map());
-  const [error, setError] = useState<string | null>(null);
+  const token = session?.token;
 
-  const token = sesion?.token;
-  const [recien, setRecien] = useState<Set<string>>(new Set());
-
-  // Toda acción administrativa llega por la sala "cuentas", así que se recarga el
-  // registro en lugar de reconstruirlo desde el evento: el servidor es la fuente.
-  // El listado de cuentas se recarga junto con él porque un alta trae un id que el
-  // mapa de nombres todavía no conoce, y la fila quedaría mostrando el id crudo.
-  const conexion = useEventos(token, (evento) => {
-    if (evento.sala !== 'cuentas' || !token) return;
-    void Promise.all([api.auditoria(token), api.cuentas(token)]).then(([registro, cuentas]) => {
-      setNombres(new Map(cuentas.map((c: Cuenta) => [c.id, c.nombreCuenta])));
-      setEventos((previos) => {
-        const conocidos = new Set(previos.map((e) => e.id));
-        setRecien(new Set(registro.filter((e) => !conocidos.has(e.id)).map((e) => e.id)));
-        return registro;
-      });
-    });
-  });
+  /**
+   * El listado de cuentas se recarga junto con el registro porque un alta trae un id
+   * que el mapa de nombres todavía no conoce, y la fila mostraría el id crudo.
+   */
+  const load = useCallback(
+    async (markFresh: boolean) => {
+      if (!token) return;
+      try {
+        const [log, accounts] = await Promise.all([
+          accountsApi.auditLog(token),
+          accountsApi.list(token),
+        ]);
+        setNames(new Map(accounts.map((a: Account) => [a.id, a.accountName])));
+        setEvents((previous) => {
+          if (markFresh) {
+            const known = new Set(previous.map((e) => e.id));
+            setFresh(new Set(log.filter((e) => !known.has(e.id)).map((e) => e.id)));
+          }
+          return log;
+        });
+      } catch (e) {
+        toast.error(e instanceof ApiError ? e.message : 'No se pudo leer el registro');
+      }
+      // toast viene de un contexto estable; incluirlo rearmaría el efecto en cada render.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [token],
+  );
 
   useEffect(() => {
-    if (!token) return;
-    Promise.all([api.auditoria(token), api.cuentas(token)])
-      .then(([registro, cuentas]) => {
-        setEventos(registro);
-        setNombres(new Map(cuentas.map((c: Cuenta) => [c.id, c.nombreCuenta])));
-      })
-      .catch((e) =>
-        setError(e instanceof ErrorApi ? e.message : 'No se pudo leer el registro'),
-      );
-  }, [token]);
+    void load(false);
+  }, [load]);
 
-  if (!sesion) return null;
+  // Toda acción administrativa llega por la sala "accounts", así que se recarga el
+  // registro en lugar de reconstruirlo desde el evento: el servidor es la fuente.
+  const connection = useRealtime(token, (event) => {
+    if (event.room === 'accounts') void load(true);
+  });
 
-  const nombre = (id: string) => nombres.get(id) ?? id.slice(0, 8);
+  if (!session) return null;
+
+  const nameOf = (id: string) => names.get(id) ?? id.slice(0, 8);
 
   return (
-    <Marco
-      titulo="Auditoría"
-      descripcion="Toda acción de un administrador sobre una cuenta queda acá. Es la contrapartida de que pueda reiniciar la contraseña de cualquiera."
-      rol={sesion.rol}
-      conexion={<Conexion estado={conexion} />}
+    <Shell
+      title="Auditoría"
+      subtitle="Toda acción de un administrador sobre una cuenta queda acá. Es la contrapartida de que pueda reiniciar la contraseña de cualquiera."
+      role={session.role}
+      accountName={session.accountName}
+      status={<ConnectionStatus state={connection} />}
     >
-      {error && (
-        <p role="alert" className="mb-6 rounded-lg bg-alerta-suave px-3 py-2.5 text-sm text-alerta">
-          {error}
-        </p>
-      )}
-
-      {eventos.length === 0 && !error ? (
-        <p className="rounded-xl border border-linea bg-panel px-5 py-8 text-center text-sm text-tinta-suave">
-          Todavía no hay acciones registradas.
-        </p>
+      {events.length === 0 ? (
+        <EmptyState
+          icon={ScrollText}
+          title="Todavía no hay acciones registradas"
+          description="Cada alta, reinicio, cambio de rol o baja aparece acá apenas ocurre."
+        />
       ) : (
-        <ol className="overflow-hidden rounded-xl border border-linea bg-panel">
-          {eventos.map((e) => (
+        <ol className="overflow-hidden rounded-xl border border-line bg-surface">
+          {events.map((event) => (
             <li
-              key={e.id}
-              className={`flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-linea px-5 py-3.5 text-sm last:border-0 ${
-                recien.has(e.id) ? 'bg-accion-suave' : ''
+              key={event.id}
+              className={`flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-line px-5 py-3.5 text-sm transition-colors duration-500 last:border-0 ${
+                fresh.has(event.id) ? 'bg-cyan-50' : ''
               }`}
             >
-              <span className="font-medium">{nombre(e.actorId)}</span>
-              <span className="text-tinta-suave">{ETIQUETA[e.accion].toLowerCase()}</span>
-              <span className="font-medium">{nombre(e.cuentaObjetivoId)}</span>
-              {e.detalle && (
-                <span className="text-tinta-suave">
-                  (
-                  {Object.entries(e.detalle)
-                    .map(([k, v]) => `${k}: ${v}`)
+              <span className="font-medium">{nameOf(event.actorId)}</span>
+              <span className="text-muted">{ACTION_LABEL[event.action]}</span>
+              <span className="font-medium">{nameOf(event.targetAccountId)}</span>
+              {event.details && (
+                <Badge tone="neutral">
+                  {Object.entries(event.details)
+                    .map(([key, value]) => `${DETAIL_LABEL[key] ?? key}: ${value}`)
                     .join(', ')}
-                  )
-                </span>
+                </Badge>
               )}
-              <time className="ml-auto font-mono text-xs text-tinta-suave" dateTime={e.creadoEn}>
-                {new Date(e.creadoEn).toLocaleString('es-NI')}
+              <time className="cifras ml-auto text-xs text-muted" dateTime={event.createdAt}>
+                {new Date(event.createdAt).toLocaleString('es-NI')}
               </time>
             </li>
           ))}
         </ol>
       )}
-    </Marco>
+    </Shell>
   );
 }

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
+import { AccountsModule } from './accounts/accounts.module';
 import { AuthModule } from './auth/auth.module';
-import { CuentasModule } from './cuentas/cuentas.module';
 import { DbModule } from './db/db.module';
-import { EventosModule } from './eventos/eventos.module';
+import { EventsModule } from './events/events.module';
 
-@Module({ imports: [DbModule, EventosModule, AuthModule, CuentasModule] })
+@Module({ imports: [DbModule, EventsModule, AuthModule, AccountsModule] })
 export class AppModule {}

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
-import type { TokenPayload } from './acceso';
+import type { TokenPayload } from './access';
 import { AuthService } from './auth.service';
-import { exigirTexto, type CambioPasswordDto, type LoginDto } from './dto';
+import { requireText, type ChangePasswordDto, type LoginDto } from './dto';
 import { JwtGuard } from './jwt.guard';
 
 @Controller('auth')
@@ -12,25 +12,25 @@ export class AuthController {
   @HttpCode(200)
   login(@Body() dto: LoginDto) {
     return this.auth.login(
-      exigirTexto(dto?.nombreCuenta, 'nombreCuenta'),
-      exigirTexto(dto?.password, 'password'),
+      requireText(dto?.accountName, 'accountName'),
+      requireText(dto?.password, 'password'),
     );
   }
 
   @Post('password')
   @HttpCode(200)
   @UseGuards(JwtGuard)
-  cambiarPassword(@Req() req: { cuenta: TokenPayload }, @Body() dto: CambioPasswordDto) {
-    return this.auth.cambiarPassword(
-      req.cuenta.sub,
-      exigirTexto(dto?.passwordActual, 'passwordActual'),
-      exigirTexto(dto?.passwordNueva, 'passwordNueva'),
+  changePassword(@Req() req: { account: TokenPayload }, @Body() dto: ChangePasswordDto) {
+    return this.auth.changePassword(
+      req.account.sub,
+      requireText(dto?.currentPassword, 'currentPassword'),
+      requireText(dto?.newPassword, 'newPassword'),
     );
   }
 
   @Get('me')
   @UseGuards(JwtGuard)
-  me(@Req() req: { cuenta: TokenPayload }) {
-    return req.cuenta;
+  me(@Req() req: { account: TokenPayload }) {
+    return req.account;
   }
 }

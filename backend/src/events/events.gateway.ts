@@ -1,18 +1,14 @@
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import {
-  OnGatewayConnection,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
+import { OnGatewayConnection, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
-import type { TokenPayload } from '../auth/acceso';
-import { salasPara, type Evento, type Sala } from './salas';
+import type { TokenPayload } from '../auth/access';
+import { roomsFor, type Event, type Room } from './rooms';
 
 @WebSocketGateway({ cors: { origin: true } })
-export class EventosGateway implements OnGatewayConnection {
-  @WebSocketServer() private servidor: Server;
-  private readonly log = new Logger(EventosGateway.name);
+export class EventsGateway implements OnGatewayConnection {
+  @WebSocketServer() private server: Server;
+  private readonly log = new Logger(EventsGateway.name);
 
   constructor(private readonly jwt: JwtService) {}
 
@@ -28,15 +24,15 @@ export class EventosGateway implements OnGatewayConnection {
 
     // Una cuenta con contraseña de un solo uso todavía no accedió al sistema y
     // tampoco escucha eventos.
-    if (payload.debeCambiarPassword) {
+    if (payload.mustChangePassword) {
       socket.disconnect(true);
       return;
     }
 
-    const salas = salasPara(payload.rol);
-    await socket.join(salas);
-    socket.emit('listo', { salas });
-    this.log.log(`${payload.nombreCuenta} escucha [${salas.join(', ')}]`);
+    const rooms = roomsFor(payload.role);
+    await socket.join(rooms);
+    socket.emit('ready', { rooms });
+    this.log.log(`${payload.accountName} escucha [${rooms.join(', ')}]`);
   }
 
   /**
@@ -46,8 +42,8 @@ export class EventosGateway implements OnGatewayConnection {
    * instancia necesita un adaptador de Redis, porque cada proceso solo conoce sus
    * propias conexiones.
    */
-  emitir<T>(sala: Sala, tipo: string, datos: T) {
-    const evento: Evento<T> = { tipo, sala, datos, emitidoEn: new Date().toISOString() };
-    this.servidor?.to(sala).emit('evento', evento);
+  emit<T>(room: Room, type: string, data: T) {
+    const event: Event<T> = { type, room, data, emittedAt: new Date().toISOString() };
+    this.server?.to(room).emit('event', event);
   }
 }

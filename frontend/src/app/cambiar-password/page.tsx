@@ -1,131 +1,122 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { KeyRound } from 'lucide-react';
-import { api, ErrorApi } from '@/lib/api';
-import { borrarSesion, guardarSesion, leerSesion } from '@/lib/sesion';
+import { ApiError, authApi, type SystemRole } from '@/lib/api';
+import { Logo } from '@/components/Logo';
+import { useToast } from '@/components/Toasts';
+import { Button, Field, Input } from '@/components/ui';
+import { clearSession, readSession, saveSession } from '@/lib/session';
 
-const LARGO_MINIMO = 8;
+const MIN_LENGTH = 8;
 
-export default function CambiarPassword() {
+export default function ChangePasswordPage() {
   const [token, setToken] = useState<string | null>(null);
-  const [rol, setRol] = useState<string | null>(null);
-  const [passwordActual, setPasswordActual] = useState('');
-  const [passwordNueva, setPasswordNueva] = useState('');
-  const [repetida, setRepetida] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [enviando, setEnviando] = useState(false);
+  const [role, setRole] = useState<SystemRole | null>(null);
+  const [accountName, setAccountName] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [repeated, setRepeated] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
-    const sesion = leerSesion();
-    if (!sesion) {
+    const session = readSession();
+    if (!session) {
       window.location.href = '/';
       return;
     }
-    setToken(sesion.token);
-    setRol(sesion.rol);
+    setToken(session.token);
+    setRole(session.role);
+    setAccountName(session.accountName);
   }, []);
 
-  const corta = passwordNueva.length > 0 && passwordNueva.length < LARGO_MINIMO;
-  const noCoincide = repetida.length > 0 && repetida !== passwordNueva;
-  const puedeEnviar =
-    passwordActual.length > 0 && passwordNueva.length >= LARGO_MINIMO && repetida === passwordNueva;
+  const tooShort = newPassword.length > 0 && newPassword.length < MIN_LENGTH;
+  const mismatch = repeated.length > 0 && repeated !== newPassword;
+  const canSubmit =
+    currentPassword.length > 0 && newPassword.length >= MIN_LENGTH && repeated === newPassword;
 
-  async function enviar(evento: React.FormEvent) {
-    evento.preventDefault();
-    if (!token || !puedeEnviar) return;
-    setError(null);
-    setEnviando(true);
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!token || !canSubmit || !role) return;
+    setSubmitting(true);
     try {
-      const { token: nuevo } = await api.cambiarPassword(token, passwordActual, passwordNueva);
-      guardarSesion({ token: nuevo, rol: rol as never, debeCambiarPassword: false });
-      window.location.href = rol === 'admin' ? '/cuentas/' : '/tablero/';
+      const { token: fresh } = await authApi.changePassword(token, currentPassword, newPassword);
+      saveSession({ token: fresh, accountName, role, mustChangePassword: false });
+      toast.success('Contraseña actualizada');
+      window.location.href = role === 'admin' ? '/cuentas/' : '/tablero/';
     } catch (e) {
-      setError(e instanceof ErrorApi ? e.message : 'No se pudo conectar con el servidor');
-      setEnviando(false);
+      toast.error(e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor');
+      setSubmitting(false);
     }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">Elegí tu contraseña</h1>
-        <p className="mt-1 text-sm text-tinta-suave">
+        <Logo />
+
+        <h1 className="mt-8 text-2xl font-semibold tracking-tight">Elegí tu contraseña</h1>
+        <p className="mt-1 text-sm text-muted">
           La que te entregaron sirve una sola vez. Hasta cambiarla no se puede entrar al resto del
           sistema.
         </p>
 
-        <form onSubmit={enviar} className="mt-8 rounded-xl border border-linea bg-panel p-6 shadow-sm">
-          <label className="block text-sm font-medium" htmlFor="actual">
-            Contraseña entregada
-          </label>
-          <input
-            id="actual"
-            type="password"
-            value={passwordActual}
-            onChange={(e) => setPasswordActual(e.target.value)}
-            autoComplete="current-password"
-            required
-            className="mt-1.5 w-full rounded-lg border border-linea px-3 text-base outline-none focus:border-accion"
-          />
+        <form onSubmit={submit} className="mt-8 space-y-5">
+          <Field label="Contraseña entregada" htmlFor="current">
+            <Input
+              id="current"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </Field>
 
-          <label className="mt-5 block text-sm font-medium" htmlFor="nueva">
-            Contraseña nueva
-          </label>
-          <input
-            id="nueva"
-            type="password"
-            value={passwordNueva}
-            onChange={(e) => setPasswordNueva(e.target.value)}
-            autoComplete="new-password"
-            required
-            className="mt-1.5 w-full rounded-lg border border-linea px-3 text-base outline-none focus:border-accion"
-          />
-          <p className={`mt-1.5 text-xs ${corta ? 'text-alerta' : 'text-tinta-suave'}`}>
-            Al menos {LARGO_MINIMO} caracteres. No se piden mayúsculas ni símbolos.
-          </p>
-
-          <label className="mt-5 block text-sm font-medium" htmlFor="repetida">
-            Repetila
-          </label>
-          <input
-            id="repetida"
-            type="password"
-            value={repetida}
-            onChange={(e) => setRepetida(e.target.value)}
-            autoComplete="new-password"
-            required
-            className="mt-1.5 w-full rounded-lg border border-linea px-3 text-base outline-none focus:border-accion"
-          />
-          {noCoincide && <p className="mt-1.5 text-xs text-alerta">Las dos no coinciden.</p>}
-
-          {error && (
-            <p
-              role="alert"
-              className="mt-5 rounded-lg bg-alerta-suave px-3 py-2.5 text-sm text-alerta"
-            >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={!puedeEnviar || enviando}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-accion px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          <Field
+            label="Contraseña nueva"
+            htmlFor="new"
+            hint={`Al menos ${MIN_LENGTH} caracteres. No se piden mayúsculas ni símbolos.`}
+            error={tooShort ? `Le faltan ${MIN_LENGTH - newPassword.length} caracteres.` : undefined}
           >
-            <KeyRound size={16} aria-hidden />
-            {enviando ? 'Guardando…' : 'Guardar y continuar'}
-          </button>
+            <Input
+              id="new"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </Field>
+
+          <Field
+            label="Repetila"
+            htmlFor="repeated"
+            error={mismatch ? 'Las dos no coinciden.' : undefined}
+          >
+            <Input
+              id="repeated"
+              type="password"
+              value={repeated}
+              onChange={(e) => setRepeated(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </Field>
+
+          <Button type="submit" disabled={!canSubmit} loading={submitting} className="w-full">
+            Guardar y continuar
+          </Button>
         </form>
 
         <button
           onClick={() => {
-            borrarSesion();
+            clearSession();
             window.location.href = '/';
           }}
-          className="mx-auto mt-4 block text-xs text-tinta-suave underline-offset-4 hover:underline"
+          className="mt-6 text-sm text-muted underline-offset-4 hover:text-ink hover:underline"
         >
-          Salir
+          Cerrar sesión
         </button>
       </div>
     </div>

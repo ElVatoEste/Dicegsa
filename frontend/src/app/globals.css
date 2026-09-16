@@ -1,37 +1,110 @@
 @import 'tailwindcss';
 
+/*
+  Tokens de DICEGSA. Los dos colores de marca salen del logotipo: índigo del
+  isotipo y cian del logotipo. El índigo es estructura, el cian es acción.
+
+  indigo-700 y cyan-500 son los valores de marca; el resto de cada escala se
+  deriva de ellos. Si llega el manual de marca con los HEX exactos, se corrigen
+  esas dos líneas y el resto acompaña.
+*/
 @theme {
-  --color-tinta: #14181d;
-  --color-tinta-suave: #5b6672;
-  --color-linea: #e2e6ea;
-  --color-fondo: #f6f7f9;
-  --color-panel: #ffffff;
+  --font-sans: var(--font-barlow), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  --color-accion: #1f5f4f;
-  --color-accion-suave: #e8f1ee;
-  --color-alerta: #9d3421;
-  --color-alerta-suave: #fbecea;
-  --color-aviso: #8a5a12;
-  --color-aviso-suave: #fdf3e2;
+  --color-indigo-50: #eef0fa;
+  --color-indigo-100: #d9ddf4;
+  --color-indigo-200: #b2b9e8;
+  --color-indigo-300: #838dd6;
+  --color-indigo-400: #5a63c0;
+  --color-indigo-500: #3d43a6;
+  --color-indigo-600: #2e3192;
+  --color-indigo-700: #262878;
+  --color-indigo-800: #1d1f5e;
+  --color-indigo-900: #141541;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  --color-cyan-50: #e6f7fe;
+  --color-cyan-100: #c2ecfc;
+  --color-cyan-200: #85d8f9;
+  --color-cyan-300: #47c3f4;
+  --color-cyan-400: #17b4f1;
+  --color-cyan-500: #00aeef;
+  --color-cyan-600: #0090c7;
+  --color-cyan-700: #00719c;
+
+  --color-canvas: #f1f3f8;
+  --color-surface: #ffffff;
+  --color-ink: #15173a;
+  --color-muted: #616a8a;
+  --color-line: #e2e6f0;
+
+  --color-success: #12805c;
+  --color-success-soft: #e4f5ef;
+  --color-warning: #9a5b06;
+  --color-warning-soft: #fcf1de;
+  --color-danger: #b3261e;
+  --color-danger-soft: #fbeae8;
 }
 
-html {
-  color-scheme: light;
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--color-fondo);
-  color: var(--color-tinta);
+  background: var(--color-canvas);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Objetivos táctiles: la misma interfaz se abre desde la mesa de control y desde un equipo de piso. */
-button,
-input,
-select {
-  min-height: 2.75rem;
+/* Cifras de ancho fijo: un cronómetro o un contador no debe saltar al cambiar. */
+.cifras {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+/* Pulgar claro para la barra de navegación, que va sobre fondo índigo. */
+.scroll-tenue {
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+:root {
+  --salida: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes dg-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Una sola entrada orquestada al montar la pantalla, no una por tarjeta. */
+.entra {
+  animation: dg-entrada 320ms var(--salida) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cyan-500);
+  outline-offset: 2px;
 }

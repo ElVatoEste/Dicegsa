@@ -10,71 +10,64 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-export const rolSistema = pgEnum('rol_sistema', [
-  'operario',
-  'supervisor',
-  'gerencia',
-  'admin',
-]);
+export const systemRole = pgEnum('system_role', ['operator', 'supervisor', 'management', 'admin']);
 
 /** Rol en el piso. El cálculo de OLE cubre alistadores; el valeador se registra pero no se calcula. */
-export const rolOperativo = pgEnum('rol_operativo', ['alistador', 'valeador']);
+export const floorRole = pgEnum('floor_role', ['picker', 'checker']);
 
-export const accionAdmin = pgEnum('accion_admin', [
-  'alta',
-  'reseteo',
-  'cambio_rol',
-  'baja',
-  'reactivacion',
+export const adminAction = pgEnum('admin_action', [
+  'create',
+  'reset_password',
+  'change_role',
+  'deactivate',
+  'reactivate',
 ]);
 
-export const cuentas = pgTable(
-  'cuentas',
+export const accounts = pgTable(
+  'accounts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     /** Identificador de ingreso. No hay correo: el operario de bodega no tiene uno corporativo. */
-    nombreCuenta: text('nombre_cuenta').notNull(),
-    hashPassword: text('hash_password').notNull(),
-    rol: rolSistema('rol').notNull().default('operario'),
+    accountName: text('account_name').notNull(),
+    passwordHash: text('password_hash').notNull(),
+    role: systemRole('role').notNull().default('operator'),
     /** Las bajas desactivan. Borrar una cuenta rompería la trazabilidad de sus eventos. */
-    activa: boolean('activa').notNull().default(true),
+    active: boolean('active').notNull().default(true),
     /** Mientras esté en true el acceso se limita al cambio de contraseña. */
-    debeCambiarPassword: boolean('debe_cambiar_password').notNull().default(true),
-    creadaEn: timestamp('creada_en', { withTimezone: true }).notNull().defaultNow(),
-    actualizadaEn: timestamp('actualizada_en', { withTimezone: true }).notNull().defaultNow(),
+    mustChangePassword: boolean('must_change_password').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    uniqueIndex('cuentas_nombre_cuenta_unico').on(sql`lower(${t.nombreCuenta})`),
-  ],
+  (t) => [uniqueIndex('accounts_account_name_unique').on(sql`lower(${t.accountName})`)],
 );
 
-export const colaboradores = pgTable('colaboradores', {
+export const workers = pgTable('workers', {
   id: uuid('id').primaryKey().defaultRandom(),
-  cuentaId: uuid('cuenta_id')
+  accountId: uuid('account_id')
     .notNull()
     .unique()
-    .references(() => cuentas.id),
-  nombre: text('nombre').notNull(),
-  rolOperativo: rolOperativo('rol_operativo').notNull().default('alistador'),
-  creadoEn: timestamp('creado_en', { withTimezone: true }).notNull().defaultNow(),
+    .references(() => accounts.id),
+  fullName: text('full_name').notNull(),
+  floorRole: floorRole('floor_role').notNull().default('picker'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 /**
  * Rastro de auditoría de las acciones administrativas sobre cuentas.
- * Un administrador puede resetear cualquier contraseña y por lo tanto tomar
+ * Un administrador puede reiniciar cualquier contraseña y por lo tanto tomar
  * cualquier identidad; este registro es lo único que lo vuelve verificable.
  */
-export const eventosAdmin = pgTable('eventos_admin', {
+export const adminEvents = pgTable('admin_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   actorId: uuid('actor_id')
     .notNull()
-    .references(() => cuentas.id),
-  cuentaObjetivoId: uuid('cuenta_objetivo_id')
+    .references(() => accounts.id),
+  targetAccountId: uuid('target_account_id')
     .notNull()
-    .references(() => cuentas.id),
-  accion: accionAdmin('accion').notNull(),
-  detalle: jsonb('detalle'),
-  creadoEn: timestamp('creado_en', { withTimezone: true }).notNull().defaultNow(),
+    .references(() => accounts.id),
+  action: adminAction('action').notNull(),
+  details: jsonb('details'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export type Cuenta = typeof cuentas.$inferSelect;
+export type Account = typeof accounts.$inferSelect;
