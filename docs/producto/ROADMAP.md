@@ -9,6 +9,15 @@ Trabajo de campo, sin código. Cierra los insumos que el modelo necesita.
 - **Cierra:** P-001 (tipificación de paradas), P-002 (tiempos estándar y complejidad), P-004 (auditoría de calidad).
 - **Supuestos:** S-1.1 acceso a registros históricos · S-1.2 colaboración de supervisores y operarios.
 
+## Fase 1 — Cuentas y acceso · hecha
+Lo único que estaba especificado por completo y no dependía de ninguna duda abierta.
+
+- REQ-018, REQ-026 a REQ-031: alta por administrador, contraseña de un solo uso, cambio
+  obligatorio al primer ingreso, reseteo, auditoría, bajas por desactivación.
+- Esqueleto del proyecto: Bun, NestJS sobre Fastify, Drizzle, PostgreSQL, migraciones y
+  pruebas. Sirve además de verificación del stack, que era la combinación menos transitada.
+- Código en [`../../backend/`](../../backend/).
+
 ## MVP — Kanban con captura de eventos (OE-3, parte 1)
 Lo mínimo que hace al modelo posible: si los eventos no se capturan bien, el OLE no existe.
 

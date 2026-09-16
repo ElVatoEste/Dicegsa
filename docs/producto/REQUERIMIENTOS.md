@@ -41,7 +41,7 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 ## Plataforma
 | # | Requisito | Prioridad | Estado | Decisión |
 |---|---|---|---|---|
-| REQ-018 | Autenticación por **nombre de cuenta y contraseña** (sin correo) y control de acceso por roles: operario, supervisor, gerencia, admin. | Alta | Propuesto | D-005 |
+| REQ-018 | Autenticación por **nombre de cuenta y contraseña** (sin correo) y control de acceso por roles: operario, supervisor, gerencia, admin. | Alta | Hecho | D-005 |
 | REQ-019 | Cero escrituras sobre la base de datos del ERP corporativo. | Alta | Propuesto | — |
 | REQ-020 | Ingesta de órdenes desde el ERP. | Alta | Propuesto | P-006 |
 | REQ-021 | Operación en red local institucional vía navegador del handheld, sobre el parque de equipos ya instalado. | Alta | Propuesto | D-002, P-019 |
@@ -52,12 +52,12 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 ## Cuentas y administración (D-005)
 | # | Requisito | Prioridad | Estado | Decisión |
 |---|---|---|---|---|
-| REQ-026 | Alta de cuentas solo por administrador; no existe auto-registro. | Alta | Propuesto | D-005 |
-| REQ-027 | Contraseña inicial de un solo uso: cambio obligatorio en el primer ingreso antes de acceder a cualquier otra pantalla. | Alta | Propuesto | P-009 |
-| REQ-028 | Reseteo de contraseña por administrador, que reinicia el ciclo de primer ingreso. | Alta | Propuesto | D-005 |
-| REQ-029 | Registro de auditoría de toda acción administrativa sobre cuentas: alta, reseteo, cambio de rol, baja — con autor y fecha. | Alta | Propuesto | — |
-| REQ-030 | Baja de cuenta por desactivación, nunca por borrado, para preservar la trazabilidad de sus eventos. | Alta | Propuesto | — |
-| REQ-031 | Contraseñas almacenadas solo con hash de derivación lenta (Argon2id o bcrypt). | Alta | Propuesto | — |
+| REQ-026 | Alta de cuentas solo por administrador; no existe auto-registro. | Alta | Hecho | D-005 |
+| REQ-027 | Contraseña inicial de un solo uso: cambio obligatorio en el primer ingreso antes de acceder a cualquier otra pantalla. | Alta | Hecho | P-009 |
+| REQ-028 | Reseteo de contraseña por administrador, que reinicia el ciclo de primer ingreso. | Alta | Hecho | D-005 |
+| REQ-029 | Registro de auditoría de toda acción administrativa sobre cuentas: alta, reseteo, cambio de rol, baja — con autor y fecha. | Alta | Hecho | — |
+| REQ-030 | Baja de cuenta por desactivación, nunca por borrado, para preservar la trazabilidad de sus eventos. | Alta | Hecho | — |
+| REQ-031 | Contraseñas almacenadas solo con hash de derivación lenta (Argon2id o bcrypt). | Alta | Hecho | — |
 | REQ-032 | Límite de intentos fallidos de ingreso por cuenta. | Media | Propuesto | P-011 |
 
 ## Validación (OE-4)
