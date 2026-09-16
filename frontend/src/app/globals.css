@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-tinta: #14181d;
+  --color-tinta-suave: #5b6672;
+  --color-linea: #e2e6ea;
+  --color-fondo: #f6f7f9;
+  --color-panel: #ffffff;
+
+  --color-accion: #1f5f4f;
+  --color-accion-suave: #e8f1ee;
+  --color-alerta: #9d3421;
+  --color-alerta-suave: #fbecea;
+  --color-aviso: #8a5a12;
+  --color-aviso-suave: #fdf3e2;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-fondo);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Objetivos táctiles: la misma interfaz se abre desde la mesa de control y desde un equipo de piso. */
+button,
+input,
+select {
+  min-height: 2.75rem;
+}

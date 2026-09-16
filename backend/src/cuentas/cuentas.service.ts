@@ -82,6 +82,11 @@ export class CuentasService {
   }
 
   cambiarRol(actorId: string, cuentaId: string, rol: RolSistema) {
+    // Un administrador que se cambia el rol a sí mismo pierde el acceso administrativo
+    // y ninguna ruta del API se lo devuelve.
+    if (actorId === cuentaId) {
+      throw new BadRequestException('No se puede cambiar el rol de la propia cuenta');
+    }
     return this.db.transaction(async (tx) => {
       const previa = await this.exigirExistente(tx, cuentaId);
       const [cuenta] = await tx
@@ -105,6 +110,9 @@ export class CuentasService {
    * cálculos de OLE tienen que seguir siendo trazables.
    */
   cambiarEstado(actorId: string, cuentaId: string, activa: boolean) {
+    if (actorId === cuentaId) {
+      throw new BadRequestException('No se puede dar de baja la propia cuenta');
+    }
     return this.db.transaction(async (tx) => {
       await this.exigirExistente(tx, cuentaId);
       const [cuenta] = await tx

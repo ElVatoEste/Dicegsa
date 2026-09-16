@@ -17,7 +17,7 @@ export const rolSistema = pgEnum('rol_sistema', [
   'admin',
 ]);
 
-/** Rol en el piso. El OLE del MVP mide alistadores; el valeador se modela pero no se calcula. */
+/** Rol en el piso. El cálculo de OLE cubre alistadores; el valeador se registra pero no se calcula. */
 export const rolOperativo = pgEnum('rol_operativo', ['alistador', 'valeador']);
 
 export const accionAdmin = pgEnum('accion_admin', [
