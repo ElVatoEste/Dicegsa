@@ -1,0 +1,59 @@
+# Dicegsa — API
+
+Backend de la plataforma OLE y Kanban para CDF. Stack en
+[`../docs/ingenieria/ARQUITECTURA.md`](../docs/ingenieria/ARQUITECTURA.md); las decisiones
+que lo fijan, en [`../docs/decisiones/POR-ACLARAR.md`](../docs/decisiones/POR-ACLARAR.md).
+
+Bun · NestJS sobre Fastify · Drizzle · PostgreSQL.
+
+## Arranque
+
+```sh
+cp .env.example .env
+docker compose up -d
+bun install
+bun run db:migrate
+bun run seed:admin            # imprime la contraseña inicial, se pide una sola vez
+bun run dev
+```
+
+## Qué hay implementado
+
+Solo el módulo de cuentas y autenticación. Las tablas de órdenes, Kanban, paradas y
+cálculo de OLE no están escritas todavía: su forma depende de dudas abiertas del registro
+(`P-001`, `P-017`, `P-018`).
+
+| Método | Ruta | Quién |
+|---|---|---|
+| `POST` | `/auth/login` | público |
+| `POST` | `/auth/password` | cuenta autenticada |
+| `GET` | `/auth/me` | cuenta autenticada |
+| `GET` | `/cuentas` | admin |
+| `POST` | `/cuentas` | admin |
+| `POST` | `/cuentas/:id/reseteo` | admin |
+| `PATCH` | `/cuentas/:id/rol` | admin |
+| `POST` | `/cuentas/:id/baja` | admin |
+| `POST` | `/cuentas/:id/reactivacion` | admin |
+| `GET` | `/cuentas/auditoria` | admin |
+
+No hay `DELETE` de cuentas y no lo habrá: las bajas desactivan, para no romper la
+trazabilidad de los eventos que la cuenta produjo.
+
+## Reglas que el código sostiene
+
+- El ingreso es por nombre de cuenta, sin distinguir mayúsculas. No hay correo.
+- No hay auto-registro: las cuentas las crea un administrador.
+- La contraseña inicial es de un solo uso; hasta cambiarla, la única ruta alcanzable es
+  `POST /auth/password`. Vale también para un administrador.
+- Las contraseñas se guardan con Argon2id, vía `Bun.password`.
+- Toda acción administrativa sobre cuentas queda registrada en `eventos_admin` dentro de
+  la misma transacción que la produjo.
+
+## Pruebas
+
+```sh
+bun test
+```
+
+Cubren la puerta de primer ingreso, la generación y el hasheo de contraseñas, y la
+normalización del nombre de cuenta. No hay pruebas de integración todavía.

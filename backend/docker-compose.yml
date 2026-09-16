@@ -1,0 +1,22 @@
+# El nombre de proyecto es explícito: sin esto Compose lo deriva del directorio
+# ("backend"), que colisiona con cualquier otro proyecto cuya carpeta se llame igual.
+name: dicegsa
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: dicegsa
+      POSTGRES_PASSWORD: dicegsa
+      POSTGRES_DB: dicegsa
+    ports:
+      - "5432:5432"
+    volumes:
+      - dicegsa-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dicegsa"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  dicegsa-db:
