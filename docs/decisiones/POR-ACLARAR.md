@@ -2,13 +2,38 @@
 
 Registro de dudas y decisiones (resueltas + pendientes). Se actualiza a medida que avanza.
 
+> **Criterio de stack:** el stack de la [propuesta aprobada](../fuentes/propuesta-estrategica.pdf) —NestJS, Next.js, PostgreSQL, Redis— se respeta. Que exista una alternativa técnicamente superior no es razón para apartarse de lo dictaminado. Las decisiones que sí se toman son las que la propuesta deja abiertas: runtime, capa HTTP, ORM, autenticación.
+
 ## Resueltas
 | # | Decisión | Resolución | Dónde |
 |---|---|---|---|
-| D-001 | Lenguaje del backend | Backend en **Go**. Stdlib `net/http`, `pgx`+`sqlc`, `go-redis`, `gorilla/websocket`, JWT, capas `internal/<dominio>`. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
-| D-002 | Render del frontend | Frontend Next.js en **SPA** (`output: 'export'`, CSR). App detrás de login, tiempo real por WebSocket → SSR no aporta. Estático servido por nginx, sin runtime Node. | [ARQUITECTURA.md — Frontend SPA](../ingenieria/ARQUITECTURA.md) |
+| D-001 | Lenguaje del backend | Backend en **NestJS + TypeScript**, como planteaba la propuesta estratégica original. Módulos por dominio con DI nativa, gateway de WebSockets, JWT. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
+| D-002 | Render del frontend | Frontend Next.js en **SPA** (`output: 'export'`, CSR). App detrás de login, tiempo real por WebSocket → SSR no aporta. Estático servido por nginx; el único proceso del VPS es el API. | [ARQUITECTURA.md — Frontend SPA](../ingenieria/ARQUITECTURA.md) |
+| D-003 | Runtime y capa HTTP | **Bun** como runtime, gestor de paquetes y test runner. NestJS sobre adaptador **Fastify** (`@nestjs/platform-fastify`) en lugar de Express. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
+| D-004 | Capa de datos (cierra P-002) | **Drizzle ORM** sobre PostgreSQL. Esquema en TypeScript como fuente de verdad, migraciones con `drizzle-kit`. Descartados Prisma y TypeORM. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
+| D-005 | Modelo de autenticación | Identificador **nombre de cuenta, no correo** (el operario de bodega no tiene correo corporativo). Sin auto-registro ni recuperación por correo: el **administrador crea, entrega y resetea** las cuentas; contraseña inicial de un solo uso, cambio obligatorio al primer ingreso; toda acción admin auditada; bajas por desactivación. | [ARQUITECTURA.md — Autenticación](../ingenieria/ARQUITECTURA.md) |
+| D-006 | Redis | Condicional. Con una sola instancia de backend el fan-out de eventos va en proceso; Redis entra cuando haya más de una instancia o una caché que lo justifique. La propuesta aprobada lo contempla, así que queda como camino previsto, no como dependencia del MVP. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
+| D-007 | Framework del frontend (cierra P-008) | Se mantiene **Next.js**, en modo SPA (D-002). La propuesta estratégica y los antecedentes aprobados lo nombran explícitamente; el stack documentado se respeta. Vite + React quedaría equivalente para una SPA pura, pero no es razón suficiente para apartarse de lo aprobado. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
+| D-008 | Comentarios en el código | Rige la [Política de comentarios](POLITICA-COMENTARIOS.md): los comentarios describen restricciones vigentes, nunca historia de desarrollo, estado de tareas ni IDs de registro. Español neutro, sin emojis. | [POLITICA-COMENTARIOS.md](POLITICA-COMENTARIOS.md) |
+| D-009 | Cliente objetivo del operario (cierra P-016) | El alistador trabaja con **handheld**, no con terminal fija. La interfaz de operario se diseña para pantalla chica, de pie y con una mano ocupada. El handheld es además la fuente de los eventos de alisto. | [ARQUITECTURA.md — Stack](../ingenieria/ARQUITECTURA.md) |
+| D-010 | Política de contraseñas (cierra P-009) | El sistema genera la contraseña inicial, aleatoria y de un solo uso; el administrador la entrega y el operario la cambia obligatoriamente en el primer ingreso. Largo mínimo 8, sin reglas de composición que en un handheld terminan en un papel pegado al equipo. No se consulta a DICEGSA. | [ARQUITECTURA.md — Autenticación](../ingenieria/ARQUITECTURA.md) |
+| D-011 | Alcance de la medición (cierra P-011) | El rol `admin` existe en el sistema; **quién lo ocupa lo define DICEGSA al desplegar**, no es una duda de diseño. El OLE del MVP mide **alistadores**; el valeador se modela como rol pero queda fuera del cálculo inicial. | [REQUERIMIENTOS.md](../producto/REQUERIMIENTOS.md) |
+| D-012 | Corte de red en el handheld (cierra P-007 en parte) | El handheld **bloquea y reintenta**: el evento se confirma contra el servidor, que es quien pone la marca de tiempo. No hay cola local en el MVP, porque una cola local reintroduce el reloj del equipo. Se reevalúa solo si la bodega tiene zonas sin cobertura confirmadas. | [ARQUITECTURA.md — Invariantes](../ingenieria/ARQUITECTURA.md) |
 
 ## Pendientes
 | # | Duda | Notas |
 |---|---|---|
-| P-001 | <duda> | <notas> |
+| P-001 | Tipificación de causas de parada | Catálogo cerrado de causas y cuáles son imputables al colaborador. Sale del cronoanálisis (OE-1). Bloquea REQ-004/005. |
+| P-002 | Ponderación por complejidad (reabierta) | El almacén ya tiene estándar: **15 líneas/hora por alistador, plano**, sin distinguir tipo de orden ([entrevista 2026-09-10](../reuniones/2026-09-10-minuta-entrevista-operacion.md)). La ponderación por alta rotación, cadena de frío y psicotrópicos que plantea la propuesta es una adición del proyecto: hay que sustentarla y calibrarla, no heredarla. |
+| P-003 | Granularidad del cronometraje | El PKL es la unidad que entra y sale, así que el cronometraje va al menos a ese nivel. Falta decidir si además se marca línea por línea: mejor resolución para el Desempeño, más toques en el handheld. |
+| P-004 | Alcance de la auditoría de calidad | ¿Se auditan todos los despachos o una muestra? Define si Q es censo o estimación. |
+| P-005 | Fórmula de bonificación | Cómo se traduce el OLE a córdobas. Decisión de la empresa, no del proyecto. |
+| P-006 | Ingesta de órdenes desde el ERP | ¿Hay API, vista de solo lectura, exportación programada? Determina si el MVP arranca con carga manual. |
+| P-010 | Sesión en el handheld | ¿El handheld se asigna a una persona por turno o rota entre operarios? Define si la sesión dura el turno o hace falta cambio rápido de usuario. |
+| P-012 | Identidad y rol del entrevistado | La minuta del 2026-09-10 no registra quién respondió. Sin el rol no se sabe si es la visión de supervisión o de operación. |
+| P-014 | Qué es "los de mesa" | En la segunda ronda aparece "mesa de control", así que sería una estación y no un rol suelto. Falta confirmar qué hace y si la plataforma la reemplaza o la alimenta. |
+| P-015 | Qué hace un valeador | Rol distinto del alistador, mejor pago, que no está descrito en ninguna fuente. Hace falta saber en qué punto del flujo entra para modelarlo bien. El alcance del cálculo ya está decidido en D-011. |
+| P-017 | Qué es un PKL (supuesto en uso) | **Supuesto de trabajo:** el PKL es la orden de alisto identificada por su código — la unidad que "cae" al piso, acumula tiempo y tiene ventana de entrega. Se modela así hasta confirmarlo con CDF. Si resultara ser un lote de varias órdenes, cambia la granularidad del tablero y del cronometraje. |
+| P-018 | Ventanas de entrega por cliente | **Ambiguo y sin resolver:** no está claro si la "ventana" es un **lapso** (la orden tiene 24 h desde que cae) o un **punto fijo** (el paquete se entrega a las 15:00). Cambia el modelo: en un caso la orden guarda una duración, en el otro una fecha y hora objetivo. Falta además el catálogo de tramos y si el dato viene con la orden desde el ERP. **Hasta resolverlo no se escribe la tabla de órdenes.** |
+| P-019 | Modelo de handheld y navegador disponible | Marca, modelo y versión de navegador de los equipos en CDF. Un handheld industrial puede traer un WebView viejo, y eso fija el objetivo de compilación del frontend y qué APIs se pueden usar. Bloquea el arranque del MVP. |
+| P-020 | Origen de la ubicación del alistador | El entrevistado describe el handheld como un GPS. Falta saber si el equipo ya reporta ubicación, si se infiere por lectura de rack, o si es solo su manera de describirlo. |
