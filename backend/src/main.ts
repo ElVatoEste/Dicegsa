@@ -9,6 +9,6 @@ const app = await NestFactory.create<NestFastifyApplication>(
 );
 app.enableCors();
 
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.PORT ?? 7300);
 await app.listen({ port, host: '0.0.0.0' });
 console.log(`API escuchando en http://localhost:${port}`);

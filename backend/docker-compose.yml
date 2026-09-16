@@ -10,7 +10,8 @@ services:
       POSTGRES_PASSWORD: dicegsa
       POSTGRES_DB: dicegsa
     ports:
-      - "5432:5432"
+      # Puerto de host propio: 5432 ya lo ocupan otros proyectos en esta máquina.
+      - "7432:5432"
     volumes:
       - dicegsa-db:/var/lib/postgresql/data
     healthcheck:

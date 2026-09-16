@@ -17,6 +17,18 @@ bun run seed:admin            # imprime la contraseña inicial, se pide una sola
 bun run dev
 ```
 
+## Puertos
+
+Propios, para no chocar con otros proyectos de la misma máquina.
+
+| Servicio | Host | Dentro del contenedor |
+|---|---|---|
+| API | `7300` | — |
+| PostgreSQL | `7432` | `5432` |
+
+El proyecto de Compose se llama `dicegsa`. Sin fijarlo, Compose lo deriva del directorio
+(`backend`) y se mete en el namespace de cualquier otro proyecto cuya carpeta se llame así.
+
 ## Qué hay implementado
 
 Solo el módulo de cuentas y autenticación. Las tablas de órdenes, Kanban, paradas y
