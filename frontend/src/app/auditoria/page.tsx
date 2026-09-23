@@ -83,7 +83,7 @@ export default function AuditLogPage() {
             <li
               key={event.id}
               className={`flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-line px-5 py-3.5 text-sm transition-colors duration-500 last:border-0 ${
-                fresh.has(event.id) ? 'bg-cyan-50' : ''
+                fresh.has(event.id) ? 'bg-brand-50' : ''
               }`}
             >
               <span className="font-medium">{nameOf(event.actorId)}</span>

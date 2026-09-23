@@ -46,7 +46,7 @@ export function NavContent({
                         : 'text-white/65 hover:bg-white/8 hover:text-white',
                     )}
                   >
-                    <Icon size={17} aria-hidden className={active ? 'text-cyan-300' : undefined} />
+                    <Icon size={17} aria-hidden className={active ? 'text-brand-300' : undefined} />
                     {label}
                   </a>
                 );
@@ -59,7 +59,7 @@ export function NavContent({
       <div className="border-t border-white/10 p-3">
         {accountName && (
           <div className="mb-1 flex items-center gap-3 px-3 py-2">
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-cyan-500 text-xs font-semibold text-indigo-900">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-300 text-xs font-semibold text-brand-950">
               {accountName.slice(0, 2).toUpperCase()}
             </span>
             <span className="min-w-0">

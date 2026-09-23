@@ -8,7 +8,7 @@ import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { Shell } from '@/components/Shell';
 import { useToast } from '@/components/Toasts';
 import { Badge, Button, EmptyState, Field, Input, Select, Table, Td, Th } from '@/components/ui';
-import { FLOOR_ROLE_LABEL, FLOOR_ROLES, ROLE_LABEL, ROLES } from '@/lib/labels';
+import { FLOOR_ACCOUNT_ROLES, FLOOR_ROLE_LABEL, FLOOR_ROLES, ROLE_LABEL, ROLES } from '@/lib/labels';
 import { useRealtime } from '@/lib/events';
 
 interface Handover {
@@ -73,7 +73,7 @@ export default function AccountsPage() {
       {handover && (
         // El único momento en que algo del sistema pasa de una persona a otra en
         // mano, así que se lee de lejos y no se confunde con un aviso más.
-        <div className="mb-8 overflow-hidden rounded-xl bg-indigo-800">
+        <div className="mb-8 overflow-hidden rounded-xl bg-brand-800">
           <div className="flex flex-wrap items-center justify-between gap-6 px-6 py-5">
             <div>
               <p className="text-sm text-white/60">Contraseña para {handover.accountName}</p>
@@ -191,7 +191,7 @@ export default function AccountsPage() {
                   </Select>
                 </Td>
                 <Td>
-                  {account.role === 'operator' ? (
+                  {FLOOR_ACCOUNT_ROLES.includes(account.role) ? (
                     <WorkerForm
                       account={account}
                       busy={busy}

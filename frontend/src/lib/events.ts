@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { API_URL } from './api';
 
-export type Room = 'accounts' | 'board';
+export type Room = 'accounts' | 'board' | 'personal';
 
 export interface RealtimeEvent<T = unknown> {
   type: string;

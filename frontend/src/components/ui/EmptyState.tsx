@@ -24,7 +24,7 @@ export function EmptyState({
     >
       <span
         aria-hidden
-        className="mx-auto grid size-11 place-items-center rounded-full bg-indigo-50 text-indigo-600"
+        className="mx-auto grid size-11 place-items-center rounded-full bg-brand-50 text-brand-600"
       >
         <Icon size={20} />
       </span>

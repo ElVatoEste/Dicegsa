@@ -30,8 +30,8 @@ export function MobileNav({
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">
-      <div className="absolute inset-0 bg-indigo-900/50" onClick={onClose} aria-hidden />
-      <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-indigo-800">
+      <div className="absolute inset-0 bg-brand-950/50" onClick={onClose} aria-hidden />
+      <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-brand-950">
         <button
           onClick={onClose}
           aria-label="Cerrar navegación"

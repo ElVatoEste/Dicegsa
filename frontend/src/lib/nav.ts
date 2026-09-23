@@ -1,4 +1,4 @@
-import { OctagonPause, ScrollText, Users, type LucideIcon } from 'lucide-react';
+import { ClipboardCheck, PackageSearch, ScrollText, SlidersHorizontal, Users, type LucideIcon } from 'lucide-react';
 import type { SystemRole } from './api';
 
 export interface NavItem {
@@ -18,16 +18,28 @@ const GROUPS: NavGroup[] = [
     title: 'Operación',
     items: [
       {
-        href: '/causas/',
-        label: 'Causas de parada',
-        icon: OctagonPause,
-        roles: ['supervisor', 'management', 'admin'],
+        href: '/pedidos/',
+        label: 'Pedidos',
+        icon: PackageSearch,
+        roles: ['control_desk', 'supervisor', 'management', 'admin'],
+      },
+      {
+        href: '/validacion/',
+        label: 'Validación',
+        icon: ClipboardCheck,
+        roles: ['validator', 'supervisor', 'admin'],
       },
     ],
   },
   {
     title: 'Administración',
     items: [
+      {
+        href: '/configuracion/',
+        label: 'Configuración',
+        icon: SlidersHorizontal,
+        roles: ['supervisor', 'management', 'admin'],
+      },
       { href: '/cuentas/', label: 'Cuentas', icon: Users, roles: ['admin'] },
       { href: '/auditoria/', label: 'Auditoría', icon: ScrollText, roles: ['admin'] },
     ],
@@ -35,7 +47,7 @@ const GROUPS: NavGroup[] = [
 ];
 
 /**
- * Pantalla de entrada después del ingreso. El operario entra a su vista;
+ * Pantalla de entrada después del ingreso. El alistador entra a su vista;
  * el resto, a la primera pantalla que su rol alcanza.
  */
 export function homeFor(role: SystemRole): string {

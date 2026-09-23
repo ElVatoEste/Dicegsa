@@ -31,7 +31,7 @@ export function Field({
 }
 
 const base =
-  'w-full rounded-lg border border-line bg-surface px-3 outline-none transition-[border-color,box-shadow] duration-150 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/12';
+  'w-full rounded-lg border border-line bg-surface px-3 outline-none transition-[border-color,box-shadow] duration-150 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/12';
 
 // El alto se elige acá y no por className: `h-9` y `h-11` pesan lo mismo, así que
 // mandarlas juntas deja que gane la del stylesheet y no la de quien la escribió.

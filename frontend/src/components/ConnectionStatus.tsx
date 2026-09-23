@@ -3,7 +3,7 @@
 import type { ConnectionState } from '@/lib/events';
 
 const LABEL: Record<ConnectionState, { text: string; dot: string }> = {
-  live: { text: 'En vivo', dot: 'bg-cyan-500' },
+  live: { text: 'En vivo', dot: 'bg-brand-500' },
   connecting: { text: 'Conectando', dot: 'bg-warning animate-pulse' },
   offline: { text: 'Sin conexión', dot: 'bg-danger' },
 };

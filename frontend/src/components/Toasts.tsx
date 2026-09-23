@@ -16,7 +16,7 @@ const STYLE: Record<Tone, { icon: typeof Info; className: string }> = {
   success: { icon: CheckCircle2, className: 'border-success/25 bg-success-soft text-success' },
   error: { icon: XCircle, className: 'border-danger/25 bg-danger-soft text-danger' },
   warning: { icon: AlertTriangle, className: 'border-warning/25 bg-warning-soft text-warning' },
-  info: { icon: Info, className: 'border-cyan-200 bg-cyan-50 text-cyan-700' },
+  info: { icon: Info, className: 'border-brand-200 bg-brand-50 text-brand-700' },
 };
 
 /** Un error se lee más despacio que una confirmación, así que dura más en pantalla. */
@@ -83,7 +83,7 @@ function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       role={toast.tone === 'error' ? 'alert' : 'status'}
       aria-live={toast.tone === 'error' ? 'assertive' : 'polite'}
       className={cn(
-        'entra pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border px-4 py-3 shadow-lg shadow-indigo-900/10',
+        'entra pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border px-4 py-3 shadow-lg shadow-brand-900/10',
         className,
       )}
     >

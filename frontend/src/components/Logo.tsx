@@ -16,23 +16,23 @@ export function Logo({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
           width="27"
           height="27"
           rx="5"
-          fill={onDark ? 'rgba(255,255,255,0.10)' : 'var(--color-indigo-50)'}
+          fill={onDark ? 'rgba(255,255,255,0.10)' : 'var(--color-brand-50)'}
         />
         <path
           d="M8 22V11.5A3.5 3.5 0 0 1 11.5 8H22"
           fill="none"
-          stroke={onDark ? '#ffffff' : 'var(--color-indigo-600)'}
+          stroke={onDark ? '#ffffff' : 'var(--color-brand-700)'}
           strokeWidth="2"
           strokeLinecap="square"
         />
         <path
           d="M12 22v-6.5a3 3 0 0 1 3-3H22"
           fill="none"
-          stroke="var(--color-cyan-500)"
+          stroke="var(--color-brand-500)"
           strokeWidth="2"
           strokeLinecap="square"
         />
-        <circle cx="18.5" cy="18" r="2" fill="var(--color-cyan-500)" />
+        <circle cx="18.5" cy="18" r="2" fill="var(--color-brand-500)" />
       </svg>
       <span className="leading-none">
         <span

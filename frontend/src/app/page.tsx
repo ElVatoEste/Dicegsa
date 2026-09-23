@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-indigo-800 p-12 lg:flex">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-brand-800 p-12 lg:flex">
         <Logo tone="dark" />
         <div className="max-w-md">
           <p className="text-3xl font-semibold leading-tight tracking-tight text-white">
@@ -44,7 +44,7 @@ export default function LoginPage() {
         </div>
         <div
           aria-hidden
-          className="absolute -bottom-32 -right-24 size-96 rounded-full bg-cyan-500/12 blur-3xl"
+          className="absolute -bottom-32 -right-24 size-96 rounded-full bg-brand-500/12 blur-3xl"
         />
       </div>
 

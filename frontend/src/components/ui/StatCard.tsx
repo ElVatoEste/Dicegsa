@@ -15,7 +15,7 @@ export function StatCard({
   return (
     <div className="rounded-xl border border-line bg-surface p-5">
       {Icon && (
-        <span className="grid size-9 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+        <span className="grid size-9 place-items-center rounded-lg bg-brand-50 text-brand-600">
           <Icon size={17} />
         </span>
       )}

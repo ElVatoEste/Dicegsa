@@ -14,7 +14,7 @@ export function Sidebar({
   path: string;
 }) {
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-indigo-800 md:flex">
+    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-brand-950 md:flex">
       <NavContent role={role} accountName={accountName} path={path} />
     </aside>
   );
