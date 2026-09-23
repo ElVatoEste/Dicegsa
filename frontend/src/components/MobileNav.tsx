@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { SystemRole } from '@/lib/api';
+import type { ConnectionState } from '@/lib/events';
 import { NavContent } from './NavContent';
 
 export function MobileNav({
@@ -11,12 +12,14 @@ export function MobileNav({
   role,
   accountName,
   path,
+  connection,
 }: {
   open: boolean;
   onClose: () => void;
   role: SystemRole;
   accountName?: string;
   path: string;
+  connection?: ConnectionState;
 }) {
   // Escape cierra el panel: quien lo abrió sin querer no queda atrapado.
   useEffect(() => {
@@ -39,7 +42,7 @@ export function MobileNav({
         >
           <X size={18} />
         </button>
-        <NavContent role={role} accountName={accountName} path={path} />
+        <NavContent role={role} accountName={accountName} path={path} connection={connection} />
       </aside>
     </div>
   );

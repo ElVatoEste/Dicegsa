@@ -1,6 +1,7 @@
 'use client';
 
 import type { SystemRole } from '@/lib/api';
+import type { ConnectionState } from '@/lib/events';
 import { NavContent } from './NavContent';
 
 /** Barra fija de escritorio. En pantallas chicas manda MobileNav. */
@@ -8,14 +9,16 @@ export function Sidebar({
   role,
   accountName,
   path,
+  connection,
 }: {
   role: SystemRole;
   accountName?: string;
   path: string;
+  connection?: ConnectionState;
 }) {
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-brand-950 md:flex">
-      <NavContent role={role} accountName={accountName} path={path} />
+      <NavContent role={role} accountName={accountName} path={path} connection={connection} />
     </aside>
   );
 }

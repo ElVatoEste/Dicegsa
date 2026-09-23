@@ -3,10 +3,14 @@
 import { useMemo, useState } from 'react';
 import { ClipboardPaste, PackagePlus } from 'lucide-react';
 import { ordersApi, type CatalogEntry } from '@/lib/api';
-import { Button, Drawer, Field, Input, Select } from '@/components/ui';
+import { Button, Combobox, Drawer, Field, Input } from '@/components/ui';
 import { parseLines } from '@/lib/paste';
 import { formatDay, fromLocalInput, toLocalInput } from '@/lib/time';
 import { useAction } from '@/lib/useLive';
+
+function zoneOptions(zones: CatalogEntry[]) {
+  return [{ value: '', label: 'Sin asignar' }, ...zones.filter((z) => z.active).map((z) => ({ value: z.id, label: z.name }))];
+}
 
 const EMPTY = {
   externalId: '',
@@ -47,7 +51,7 @@ export function NewOrderDrawer({
   const parsed = useMemo(() => parseLines(pasted), [pasted]);
   const units = parsed.lines.reduce((sum, l) => sum + l.quantity, 0);
 
-  const set = (key: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+  const set = (key: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const ready =
@@ -126,20 +130,24 @@ export function NewOrderDrawer({
           <Input id="dueAt" type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
         </Field>
         <Field label="Zona de despacho" htmlFor="dispatchZoneId">
-          <Select id="dispatchZoneId" value={form.dispatchZoneId} onChange={set('dispatchZoneId')}>
-            <option value="">Sin asignar</option>
-            {dispatchZones.filter((z) => z.active).map((z) => (
-              <option key={z.id} value={z.id}>{z.name}</option>
-            ))}
-          </Select>
+          <Combobox
+            id="dispatchZoneId"
+            value={form.dispatchZoneId}
+            onChange={(v) => setForm((f) => ({ ...f, dispatchZoneId: v }))}
+            placeholder="Sin asignar"
+            searchPlaceholder="Buscar zona…"
+            options={zoneOptions(dispatchZones)}
+          />
         </Field>
         <Field label="Zona de inventario" htmlFor="inventoryZoneId">
-          <Select id="inventoryZoneId" value={form.inventoryZoneId} onChange={set('inventoryZoneId')}>
-            <option value="">Sin asignar</option>
-            {inventoryZones.filter((z) => z.active).map((z) => (
-              <option key={z.id} value={z.id}>{z.name}</option>
-            ))}
-          </Select>
+          <Combobox
+            id="inventoryZoneId"
+            value={form.inventoryZoneId}
+            onChange={(v) => setForm((f) => ({ ...f, inventoryZoneId: v }))}
+            placeholder="Sin asignar"
+            searchPlaceholder="Buscar zona…"
+            options={zoneOptions(inventoryZones)}
+          />
         </Field>
         <Field label="Notas de televentas" htmlFor="notes">
           <Input id="notes" value={form.notes} onChange={set('notes')} placeholder="Cambio de dirección…" />

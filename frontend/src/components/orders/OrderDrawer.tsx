@@ -10,7 +10,7 @@ import {
   type OrderRow,
   type Picker,
 } from '@/lib/api';
-import { Badge, Button, Drawer, Field, Input, Select } from '@/components/ui';
+import { Badge, Button, Combobox, Drawer, Field, Input } from '@/components/ui';
 import { LINE_STATUS_LABEL, ORDER_STATUS_LABEL } from '@/lib/labels';
 import { formatDateTime, formatDay, formatRemaining, fromLocalInput, toLocalInput, useNow } from '@/lib/time';
 import { useAction } from '@/lib/useLive';
@@ -193,29 +193,30 @@ export function OrderDrawer({
             <p className="cifras text-xs text-muted">PKL {shown.pickListNumber}</p>
           </div>
           {canEdit && shown.status === 'in_progress' && shown.pickListId && (
-            <label className="flex items-center gap-2 text-xs text-muted">
+            <div className="flex items-center gap-2 text-xs text-muted">
               <RefreshCw size={13} aria-hidden />
-              <Select
-                size="sm"
-                value=""
-                disabled={busy}
-                aria-label="Reasignar el PKL"
-                className="w-48"
-                onChange={(e) => {
-                  const picker = pickers.find((p) => p.id === e.target.value);
-                  if (picker)
-                    void act(
-                      () => pickListsApi.reassign(token, shown.pickListId!, picker.id),
-                      `PKL ${shown.pickListNumber} reasignado a ${picker.fullName}`,
-                    );
-                }}
-              >
-                <option value="">Reasignar a…</option>
-                {pickers.filter((p) => p.id !== shown.assignee?.id).map((p) => (
-                  <option key={p.id} value={p.id}>{p.fullName}</option>
-                ))}
-              </Select>
-            </label>
+              <div className="w-52">
+                <Combobox
+                  size="sm"
+                  value=""
+                  disabled={busy}
+                  aria-label="Reasignar el PKL"
+                  placeholder="Reasignar a…"
+                  searchPlaceholder="Buscar alistador…"
+                  options={pickers
+                    .filter((p) => p.id !== shown.assignee?.id)
+                    .map((p) => ({ value: p.id, label: p.fullName, hint: p.accountName }))}
+                  onChange={(id) => {
+                    const picker = pickers.find((p) => p.id === id);
+                    if (picker)
+                      void act(
+                        () => pickListsApi.reassign(token, shown.pickListId!, picker.id),
+                        `PKL ${shown.pickListNumber} reasignado a ${picker.fullName}`,
+                      );
+                  }}
+                />
+              </div>
+            </div>
           )}
         </section>
       )}
@@ -294,12 +295,18 @@ function ZoneSelect({
 }) {
   return (
     <Field label={label}>
-      <Select value={value ?? ''} disabled={disabled} onChange={(e) => onChange(e.target.value || null)}>
-        <option value="">Sin asignar</option>
-        {zones.filter((z) => z.active || z.id === value).map((z) => (
-          <option key={z.id} value={z.id}>{z.name}</option>
-        ))}
-      </Select>
+      <Combobox
+        value={value ?? ''}
+        disabled={disabled}
+        aria-label={label}
+        placeholder="Sin asignar"
+        searchPlaceholder="Buscar zona…"
+        onChange={(id) => onChange(id || null)}
+        options={[
+          { value: '', label: 'Sin asignar' },
+          ...zones.filter((z) => z.active || z.id === value).map((z) => ({ value: z.id, label: z.name })),
+        ]}
+      />
     </Field>
   );
 }

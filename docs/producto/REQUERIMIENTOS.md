@@ -6,7 +6,7 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 ## Kanban y captura de eventos (OE-3)
 | # | Requisito | Prioridad | Estado | Decisión |
 |---|---|---|---|---|
-| REQ-001 | Tablero Kanban de órdenes de alisto con estados y transiciones, operable desde terminal táctil. | Alta | Propuesto | — |
+| REQ-001 | Tablero Kanban de órdenes de alisto con estados y transiciones, operable desde terminal táctil. | Alta | En construcción | D-032 |
 | REQ-002 | Sincronización en tiempo real del tablero entre todas las terminales vía WebSocket. | Alta | Hecho | D-001, D-006 |
 | REQ-003 | Cronometraje por orden y por línea, con marca de tiempo del servidor: el alistador marca cada línea al armarla. | Alta | En construcción | D-026 |
 | REQ-042 | Línea no encontrada: el alistador la reporta a inventario; si no aparece, la línea o el pedido se dan de baja y salen del conteo del Desempeño. | Alta | En construcción | D-035, P-030 |

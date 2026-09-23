@@ -37,7 +37,7 @@ const base =
 // mandarlas juntas deja que gane la del stylesheet y no la de quien la escribió.
 const HEIGHTS = { sm: 'h-9 text-sm', md: 'h-11 text-base', lg: 'h-13 text-base' } as const;
 
-// `size` ya existe como atributo nativo de input y select, y ahí es un número.
+// `size` ya existe como atributo nativo de input, y ahí es un número.
 // Se lo excluye para que el del kit sea el que vale.
 type WithSize<T> = Omit<T, 'size'> & { size?: keyof typeof HEIGHTS };
 
@@ -47,12 +47,4 @@ export function Input({
   ...props
 }: WithSize<React.InputHTMLAttributes<HTMLInputElement>>) {
   return <input {...props} className={cn(base, HEIGHTS[size], className)} />;
-}
-
-export function Select({
-  size = 'md',
-  className,
-  ...props
-}: WithSize<React.SelectHTMLAttributes<HTMLSelectElement>>) {
-  return <select {...props} className={cn(base, HEIGHTS[size], className)} />;
 }

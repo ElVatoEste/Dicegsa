@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { ScrollText } from 'lucide-react';
 import { accountsApi, ApiError, resetRequestsApi, type Account, type AdminEvent, type ResetRequest } from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
-import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { Shell } from '@/components/Shell';
 import { useToast } from '@/components/Toasts';
 import { Badge, EmptyState, Tabs } from '@/components/ui';
@@ -79,7 +78,7 @@ export default function AuditLogPage() {
       title="Auditoría"
       role={session.role}
       accountName={session.accountName}
-      status={<ConnectionStatus state={connection} />}
+      connection={connection}
     >
       <Tabs
         value={view}

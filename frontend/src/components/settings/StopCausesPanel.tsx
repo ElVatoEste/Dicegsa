@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { OctagonPause, Plus, Power } from 'lucide-react';
 import { stopCausesApi } from '@/lib/api';
-import { Badge, Button, EmptyState, Field, Input, Select } from '@/components/ui';
+import { Badge, Button, Combobox, EmptyState, Field, Input } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { useAction, useLive } from '@/lib/useLive';
 
@@ -37,13 +37,15 @@ export function StopCausesPanel({ token, canEdit }: { token: string; canEdit: bo
           </Field>
           {/* Sin valor por defecto: la clasificación no se puede corregir después, así que se elige a conciencia. */}
           <Field label="¿Depende del alistador?" htmlFor="attributable" className="basis-60">
-            <Select id="attributable" value={attributable} onChange={(e) => setAttributable(e.target.value as '' | 'yes' | 'no')}>
-              <option value="" disabled>
-                Elegí una opción
-              </option>
-              <option value="no">No, descuenta del tiempo</option>
-              <option value="yes">Sí, no descuenta</option>
-            </Select>
+            <Combobox
+              id="attributable"
+              value={attributable}
+              onChange={setAttributable}
+              options={[
+                { value: 'no', label: 'No, descuenta del tiempo' },
+                { value: 'yes', label: 'Sí, no descuenta' },
+              ]}
+            />
           </Field>
           <Button type="submit" disabled={!name.trim() || !attributable} loading={busy}>
             <Plus size={16} aria-hidden />

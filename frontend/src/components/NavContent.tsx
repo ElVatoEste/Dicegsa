@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 import type { SystemRole } from '@/lib/api';
+import type { ConnectionState } from '@/lib/events';
+import { ConnectionStatus } from './ConnectionStatus';
 import { cn } from '@/lib/cn';
 import { ROLE_LABEL } from '@/lib/labels';
 import { isActiveRoute, navGroupsFor } from '@/lib/nav';
@@ -18,10 +20,12 @@ export function NavContent({
   role,
   accountName,
   path,
+  connection,
 }: {
   role: SystemRole;
   accountName?: string;
   path: string;
+  connection?: ConnectionState;
 }) {
   const router = useRouter();
   return (
@@ -60,6 +64,11 @@ export function NavContent({
       </nav>
 
       <div className="border-t border-white/10 p-3">
+        {connection && (
+          <div className="px-3 pb-2 pt-1">
+            <ConnectionStatus state={connection} tone="dark" />
+          </div>
+        )}
         {accountName && (
           <div className="mb-1 flex items-center gap-3 px-3 py-2">
             <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-300 text-xs font-semibold text-brand-950">

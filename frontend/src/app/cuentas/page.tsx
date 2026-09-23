@@ -12,11 +12,10 @@ import {
   type SystemRole,
 } from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
-import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { ResetRequestsPanel } from '@/components/ResetRequestsPanel';
 import { Shell } from '@/components/Shell';
 import { useToast } from '@/components/Toasts';
-import { Badge, Button, EmptyState, Field, Input, Select, Table, Td, Th } from '@/components/ui';
+import { Badge, Button, Combobox, EmptyState, Field, Input, Table, Td, Th } from '@/components/ui';
 import { FLOOR_ACCOUNT_ROLES, FLOOR_ROLE_LABEL, FLOOR_ROLES, ROLE_LABEL, ROLES } from '@/lib/labels';
 import { useRealtime } from '@/lib/events';
 
@@ -79,7 +78,7 @@ export default function AccountsPage() {
       title="Cuentas"
       role={session.role}
       accountName={session.accountName}
-      status={<ConnectionStatus state={connection} />}
+      connection={connection}
     >
       {handover && (
         // El único momento en que algo del sistema pasa de una persona a otra en
@@ -151,17 +150,13 @@ export default function AccountsPage() {
           />
         </Field>
         <Field label="Rol" htmlFor="newRole" className="basis-44">
-          <Select
+          <Combobox
             id="newRole"
             value={newRole}
-            onChange={(e) => setNewRole(e.target.value as SystemRole)}
-          >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {ROLE_LABEL[r]}
-              </option>
-            ))}
-          </Select>
+            onChange={setNewRole}
+            searchPlaceholder="Buscar rol…"
+            options={ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+          />
         </Field>
         <Button type="submit" disabled={!newName.trim()} loading={busy}>
           <UserPlus size={16} aria-hidden />
@@ -198,14 +193,16 @@ export default function AccountsPage() {
                   )}
                 </Td>
                 <Td>
-                  <Select
+                  <Combobox
                     value={account.role}
                     size="sm"
                     disabled={busy}
                     className="w-48"
-                    onChange={(e) => {
-                      if (!token) return;
-                      const role = e.target.value as SystemRole;
+                    aria-label={`Rol de ${account.accountName}`}
+                    searchPlaceholder="Buscar rol…"
+                    options={ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+                    onChange={(role) => {
+                      if (!token || role === account.role) return;
                       void run(async () => {
                         await accountsApi.changeRole(token, account.id, role);
                         toast.success(
@@ -213,13 +210,7 @@ export default function AccountsPage() {
                         );
                       });
                     }}
-                  >
-                    {ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {ROLE_LABEL[r]}
-                      </option>
-                    ))}
-                  </Select>
+                  />
                 </Td>
                 <Td>
                   {FLOOR_ACCOUNT_ROLES.includes(account.role) ? (
@@ -333,19 +324,15 @@ function WorkerForm({
         size="sm"
         className="w-44"
       />
-      <Select
+      <Combobox
         value={floorRole}
         size="sm"
-        className="w-32"
+        className="w-36"
         aria-label={`Rol en el piso de ${account.accountName}`}
-        onChange={(e) => setFloorRole(e.target.value as FloorRole)}
-      >
-        {FLOOR_ROLES.map((r) => (
-          <option key={r} value={r}>
-            {FLOOR_ROLE_LABEL[r]}
-          </option>
-        ))}
-      </Select>
+        searchPlaceholder="Buscar…"
+        onChange={setFloorRole}
+        options={FLOOR_ROLES.map((r) => ({ value: r, label: FLOOR_ROLE_LABEL[r] }))}
+      />
       {/* Reserva su lugar aunque no haya cambios, así la fila no se reacomoda al tipear. */}
       <Button
         type="submit"

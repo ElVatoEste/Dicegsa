@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { SystemRole } from '@/lib/api';
+import type { ConnectionState } from '@/lib/events';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { PageHeader } from './ui';
+import { cn } from '@/lib/cn';
 
 /** Arma la pantalla: navegación a la izquierda, encabezado y contenido a la derecha. */
 export function Shell({
@@ -14,16 +16,20 @@ export function Shell({
   subtitle,
   role,
   accountName,
-  status,
+  connection,
   actions,
+  wide = false,
   children,
 }: {
   title: string;
   subtitle?: string;
   role: SystemRole;
   accountName?: string;
-  status?: React.ReactNode;
+  /** Estado de la conexión en vivo; se muestra en la navegación. */
+  connection?: ConnectionState;
   actions?: React.ReactNode;
+  /** Ocupa todo el ancho disponible, para vistas como el tablero. */
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -34,28 +40,20 @@ export function Shell({
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar role={role} accountName={accountName} path={path} />
+      <Sidebar role={role} accountName={accountName} path={path} connection={connection} />
       <MobileNav
         open={open}
         onClose={() => setOpen(false)}
         role={role}
         accountName={accountName}
         path={path}
+        connection={connection}
       />
 
       <div className="min-w-0 flex-1">
-        <Topbar onOpen={() => setOpen(true)} status={status} />
-        <main className="entra mx-auto max-w-6xl px-5 py-8 md:px-10 md:py-10">
-          <PageHeader
-            title={title}
-            subtitle={subtitle}
-            actions={
-              <>
-                <span className="hidden md:block">{status}</span>
-                {actions}
-              </>
-            }
-          />
+        <Topbar onOpen={() => setOpen(true)} />
+        <main className={cn('entra mx-auto px-5 py-8 md:px-10 md:py-10', wide ? 'max-w-[112rem]' : 'max-w-6xl')}>
+          <PageHeader title={title} subtitle={subtitle} actions={actions} />
           <div className="mt-8">{children}</div>
         </main>
       </div>

@@ -11,7 +11,6 @@ import {
   type ValidationErrorInput,
 } from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
-import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { Shell } from '@/components/Shell';
 import { Button, EmptyState, Input } from '@/components/ui';
 import { cn } from '@/lib/cn';
@@ -48,7 +47,7 @@ export default function ValidationPage() {
       title="Validación"
       role={session.role}
       accountName={session.accountName}
-      status={<ConnectionStatus state={connection} />}
+      connection={connection}
     >
       {!data ? (
         <div className="grid gap-4 lg:grid-cols-[18rem_1fr]">
