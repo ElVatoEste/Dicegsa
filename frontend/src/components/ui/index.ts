@@ -6,6 +6,7 @@ export { Drawer } from './Drawer';
 export { EmptyState } from './EmptyState';
 export { Field, Input, Select } from './Field';
 export { PageHeader } from './PageHeader';
+export { PasswordInput } from './PasswordInput';
 export { Progress } from './Progress';
 export { StatCard } from './StatCard';
 export { Table, Td, Th } from './Table';

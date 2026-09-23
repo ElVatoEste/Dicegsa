@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Session, SystemRole } from '@/lib/api';
 import { readSession } from '@/lib/session';
 
@@ -13,19 +14,20 @@ import { readSession } from '@/lib/session';
  */
 export function useAuthGuard(allowedRoles?: SystemRole[]): Session | null {
   const [session, setSession] = useState<Session | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const current = readSession();
     if (!current) {
-      window.location.href = '/';
+      router.replace('/');
       return;
     }
     if (current.mustChangePassword) {
-      window.location.href = '/cambiar-password/';
+      router.replace('/cambiar-password/');
       return;
     }
     if (allowedRoles && !allowedRoles.includes(current.role)) {
-      window.location.href = '/';
+      router.replace('/');
       return;
     }
     setSession(current);

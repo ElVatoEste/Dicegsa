@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 import type { SystemRole } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -21,6 +23,7 @@ export function NavContent({
   accountName?: string;
   path: string;
 }) {
+  const router = useRouter();
   return (
     <>
       <div className="px-5 py-5">
@@ -35,7 +38,7 @@ export function NavContent({
               {items.map(({ href, label, icon: Icon }) => {
                 const active = isActiveRoute(path, href);
                 return (
-                  <a
+                  <Link
                     key={href}
                     href={href}
                     aria-current={active ? 'page' : undefined}
@@ -48,7 +51,7 @@ export function NavContent({
                   >
                     <Icon size={17} aria-hidden className={active ? 'text-brand-300' : undefined} />
                     {label}
-                  </a>
+                  </Link>
                 );
               })}
             </div>
@@ -71,7 +74,7 @@ export function NavContent({
         <button
           onClick={() => {
             clearSession();
-            window.location.href = '/';
+            router.replace('/');
           }}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/65 transition-colors duration-150 hover:bg-white/8 hover:text-white"
         >

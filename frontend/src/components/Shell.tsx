@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import type { SystemRole } from '@/lib/api';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
@@ -26,7 +27,10 @@ export function Shell({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const path = typeof window !== 'undefined' ? window.location.pathname : '';
+  const path = usePathname();
+
+  // Al navegar desde el panel de móvil, el panel se cierra solo.
+  useEffect(() => setOpen(false), [path]);
 
   return (
     <div className="flex min-h-screen">

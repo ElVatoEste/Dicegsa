@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ApiError, authApi } from '@/lib/api';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/components/Toasts';
-import { Button, Field, Input } from '@/components/ui';
+import { Button, Field, Input, PasswordInput } from '@/components/ui';
 import { homeFor } from '@/lib/nav';
 import { saveSession } from '@/lib/session';
 
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const toast = useToast();
+  const router = useRouter();
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -20,9 +22,7 @@ export default function LoginPage() {
     try {
       const session = await authApi.login(accountName, password);
       saveSession(session);
-      window.location.href = session.mustChangePassword
-        ? '/cambiar-password/'
-        : homeFor(session.role);
+      router.replace(session.mustChangePassword ? '/cambiar-password/' : homeFor(session.role));
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor');
       setSubmitting(false);
@@ -74,9 +74,8 @@ export default function LoginPage() {
             </Field>
 
             <Field label="Contraseña" htmlFor="password">
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"

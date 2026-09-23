@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   Check,
@@ -54,6 +55,7 @@ function linesOf(pickList: PickList): OrderLine[] {
 /** Vista del alistador. Corre en las computadoras compartidas del almacén. */
 export default function OperatorPage() {
   const session = useAuthGuard(['operator']);
+  const router = useRouter();
   const token = session?.token;
   const { data, setData, connection } = useLive(token, loadWork);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export default function OperatorPage() {
           <button
             onClick={() => {
               clearSession();
-              window.location.href = '/';
+              router.replace('/');
             }}
             className="flex h-10 items-center gap-2 rounded-lg bg-white/10 px-3 text-sm font-medium transition-[background-color,transform] duration-150 hover:bg-white/20 active:scale-[0.97]"
           >

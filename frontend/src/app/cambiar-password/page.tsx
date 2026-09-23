@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ApiError, authApi, type SystemRole } from '@/lib/api';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/components/Toasts';
-import { Button, Field, Input } from '@/components/ui';
+import { Button, Field, PasswordInput } from '@/components/ui';
 import { homeFor } from '@/lib/nav';
 import { clearSession, readSession, saveSession } from '@/lib/session';
 
@@ -19,11 +20,12 @@ export default function ChangePasswordPage() {
   const [repeated, setRepeated] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const toast = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const session = readSession();
     if (!session) {
-      window.location.href = '/';
+      router.replace('/');
       return;
     }
     setToken(session.token);
@@ -44,7 +46,7 @@ export default function ChangePasswordPage() {
       const { token: fresh } = await authApi.changePassword(token, currentPassword, newPassword);
       saveSession({ token: fresh, accountName, role, mustChangePassword: false });
       toast.success('Contraseña actualizada');
-      window.location.href = homeFor(role);
+      router.replace(homeFor(role));
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor');
       setSubmitting(false);
@@ -64,9 +66,8 @@ export default function ChangePasswordPage() {
 
         <form onSubmit={submit} className="mt-8 space-y-5">
           <Field label="Contraseña entregada" htmlFor="current">
-            <Input
+            <PasswordInput
               id="current"
-              type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               autoComplete="current-password"
@@ -80,9 +81,8 @@ export default function ChangePasswordPage() {
             hint={`Al menos ${MIN_LENGTH} caracteres. No se piden mayúsculas ni símbolos.`}
             error={tooShort ? `Le faltan ${MIN_LENGTH - newPassword.length} caracteres.` : undefined}
           >
-            <Input
+            <PasswordInput
               id="new"
-              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               autoComplete="new-password"
@@ -95,9 +95,8 @@ export default function ChangePasswordPage() {
             htmlFor="repeated"
             error={mismatch ? 'Las dos no coinciden.' : undefined}
           >
-            <Input
+            <PasswordInput
               id="repeated"
-              type="password"
               value={repeated}
               onChange={(e) => setRepeated(e.target.value)}
               autoComplete="new-password"
@@ -113,7 +112,7 @@ export default function ChangePasswordPage() {
         <button
           onClick={() => {
             clearSession();
-            window.location.href = '/';
+            router.replace('/');
           }}
           className="mt-6 text-sm text-muted underline-offset-4 hover:text-ink hover:underline"
         >
