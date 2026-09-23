@@ -1,5 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { asc, eq, sql } from 'drizzle-orm';
+import { audit } from '../audit/audit';
 import { DB, type Db } from '../db/db.module';
 import { stopCauses } from '../db/schema';
 import { EventsGateway } from '../events/events.gateway';
@@ -25,21 +26,29 @@ export class StopCausesService {
       .limit(1);
     if (existing) throw new ConflictException('Ya existe una causa con ese nombre');
 
-    const [cause] = await this.db
-      .insert(stopCauses)
-      .values({ name: trimmed, attributable, createdBy: actorId })
-      .returning();
+    const cause = await this.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(stopCauses)
+        .values({ name: trimmed, attributable, createdBy: actorId })
+        .returning();
+      await audit(tx, actorId, 'create', 'stop_cause', created!.id, { name: trimmed, attributable });
+      return created!;
+    });
     this.events.emit(ROOMS.board, 'stop_cause.created', cause);
-    return cause!;
+    return cause;
   }
 
-  async setActive(id: string, active: boolean) {
-    const [cause] = await this.db
-      .update(stopCauses)
-      .set({ active })
-      .where(eq(stopCauses.id, id))
-      .returning();
-    if (!cause) throw new NotFoundException('No existe esa causa');
+  async setActive(actorId: string, id: string, active: boolean) {
+    const cause = await this.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(stopCauses)
+        .set({ active })
+        .where(eq(stopCauses.id, id))
+        .returning();
+      if (!updated) throw new NotFoundException('No existe esa causa');
+      await audit(tx, actorId, active ? 'reactivate' : 'deactivate', 'stop_cause', id);
+      return updated;
+    });
     this.events.emit(ROOMS.board, active ? 'stop_cause.reactivated' : 'stop_cause.deactivated', cause);
     return cause;
   }

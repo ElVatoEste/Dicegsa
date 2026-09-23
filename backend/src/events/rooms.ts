@@ -20,6 +20,8 @@ export interface Event<T = unknown> {
 
 const BY_ROLE: Record<SystemRole, Room[]> = {
   operator: [],
+  validator: [ROOMS.board],
+  control_desk: [ROOMS.board],
   supervisor: [ROOMS.board],
   management: [ROOMS.board],
   admin: [ROOMS.board, ROOMS.accounts],

@@ -1,4 +1,10 @@
-export type SystemRole = 'operator' | 'supervisor' | 'management' | 'admin';
+export type SystemRole =
+  | 'operator'
+  | 'validator'
+  | 'control_desk'
+  | 'supervisor'
+  | 'management'
+  | 'admin';
 
 export interface TokenPayload {
   sub: string;

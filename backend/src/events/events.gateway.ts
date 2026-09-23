@@ -30,7 +30,8 @@ export class EventsGateway implements OnGatewayConnection {
     }
 
     const rooms = roomsFor(payload.role);
-    await socket.join(rooms);
+    // Sala propia: el operario no escucha el tablero, pero sí lo que le toca a él.
+    await socket.join([...rooms, personalRoom(payload.sub)]);
     socket.emit('ready', { rooms });
     this.log.log(`${payload.accountName} escucha [${rooms.join(', ')}]`);
   }
@@ -46,4 +47,18 @@ export class EventsGateway implements OnGatewayConnection {
     const event: Event<T> = { type, room, data, emittedAt: new Date().toISOString() };
     this.server?.to(room).emit('event', event);
   }
+
+  /** Emite solo a las conexiones de una cuenta. */
+  emitToAccount<T>(accountId: string, type: string, data: T) {
+    this.server?.to(personalRoom(accountId)).emit('event', {
+      type,
+      room: 'personal',
+      data,
+      emittedAt: new Date().toISOString(),
+    });
+  }
+}
+
+function personalRoom(accountId: string) {
+  return `account:${accountId}`;
 }

@@ -15,6 +15,13 @@
       "when": 1790132095028,
       "tag": "0001_swift_the_watchers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790200584224,
+      "tag": "0002_red_marvel_zombies",
+      "breakpoints": true
     }
   ]
 }

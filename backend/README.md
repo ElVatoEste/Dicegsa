@@ -31,9 +31,12 @@ El proyecto de Compose se llama `dicegsa`. Sin fijarlo, Compose lo deriva del di
 
 ## Qué hay implementado
 
-Cuentas y autenticación, perfil de colaborador y catálogo de causas de parada. Las
-tablas de órdenes, Kanban y cálculo de OLE no están escritas todavía: esperan a que se
-confirme qué es un PKL (`P-017`).
+Cuentas y autenticación, perfil de colaborador, catálogos configurables, pedidos y el
+ciclo completo del PKL: asignación, alisto línea por línea, paradas, entrega, validación
+y devolución por errores. Falta el cálculo de OLE.
+
+El esquema está separado por tabla en `src/db/schema/`. `bun run smoke` recorre el ciclo
+del PKL contra el API en marcha y deja cuentas `smoke_*` en la base.
 
 | Método | Ruta | Quién |
 |---|---|---|
@@ -52,6 +55,30 @@ confirme qué es un PKL (`P-017`).
 | `POST` | `/stop-causes` | supervisor, admin |
 | `POST` | `/stop-causes/:id/deactivate` | supervisor, admin |
 | `POST` | `/stop-causes/:id/reactivate` | supervisor, admin |
+| `GET` | `/catalogs/:kind` | cuenta autenticada |
+| `POST` | `/catalogs/:kind` | supervisor, admin |
+| `POST` | `/catalogs/:kind/:id/deactivate` | supervisor, admin |
+| `POST` | `/catalogs/:kind/:id/reactivate` | supervisor, admin |
+| `GET` | `/settings` | cuenta autenticada |
+| `PUT` | `/settings/:key` | supervisor, admin |
+| `GET` | `/orders` | mesa de control, supervisor, gerencia, admin |
+| `GET` | `/orders/:id` | mesa de control, supervisor, gerencia, admin |
+| `POST` | `/orders` | mesa de control, admin |
+| `PATCH` | `/orders/:id` | mesa de control, admin |
+| `POST` | `/orders/:id/cancel` | mesa de control, admin |
+| `POST` | `/orders/lines/:lineId/cancel` | mesa de control, admin |
+| `GET` | `/pick-lists/pickers` | mesa de control, supervisor, gerencia, admin |
+| `POST` | `/pick-lists` | mesa de control, admin |
+| `POST` | `/pick-lists/:id/reassign` | mesa de control, admin |
+| `GET` | `/pick-lists/mine` | operario |
+| `POST` | `/pick-lists/:id/start` | operario asignado |
+| `POST` | `/pick-lists/:id/lines/:lineId` | operario asignado |
+| `POST` | `/pick-lists/:id/stops` | operario asignado |
+| `POST` | `/pick-lists/:id/stops/end` | operario asignado |
+| `POST` | `/pick-lists/:id/deliver` | operario asignado |
+| `GET` | `/pick-lists/validation-queue` | validador, supervisor, admin |
+| `POST` | `/pick-lists/:id/validate` | validador |
+| `GET` | `/pick-lists/:id` | mesa de control, supervisor, gerencia, admin, validador |
 
 ### Eventos en vivo
 
@@ -61,7 +88,8 @@ siendo la de un solo uso.
 
 | Sala | Contenido | Roles |
 |---|---|---|
-| `board` | Transiciones del Kanban, paradas y cambios del catálogo de causas. | supervisor, gerencia, admin |
+| `board` | Pedidos, PKL, paradas y cambios de catálogos. | validador, mesa de control, supervisor, gerencia, admin |
+| `account:<id>` | Lo que le toca a esa cuenta: PKL asignados, reasignados o devueltos. | la propia cuenta |
 | `accounts` | Altas, reseteos, cambios de rol, perfiles y bajas. | admin |
 
 El servidor emite `listo` con las salas asignadas al conectar, y después `evento` con

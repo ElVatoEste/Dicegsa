@@ -8,20 +8,20 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 |---|---|---|---|---|
 | REQ-001 | Tablero Kanban de órdenes de alisto con estados y transiciones, operable desde terminal táctil. | Alta | Propuesto | — |
 | REQ-002 | Sincronización en tiempo real del tablero entre todas las terminales vía WebSocket. | Alta | Hecho | D-001, D-006 |
-| REQ-003 | Cronometraje por orden y por línea, con marca de tiempo del servidor: el alistador marca cada línea al armarla. | Alta | Propuesto | D-026 |
-| REQ-042 | Línea no encontrada: el alistador la reporta a inventario; si no aparece, la línea o el pedido se dan de baja y salen del conteo del Desempeño. | Alta | Propuesto | D-035, P-030 |
-| REQ-004 | Registro de bloqueo en un toque, seleccionando causa de un catálogo tipificado. | Alta | Propuesto | D-028 |
+| REQ-003 | Cronometraje por orden y por línea, con marca de tiempo del servidor: el alistador marca cada línea al armarla. | Alta | En construcción | D-026 |
+| REQ-042 | Línea no encontrada: el alistador la reporta a inventario; si no aparece, la línea o el pedido se dan de baja y salen del conteo del Desempeño. | Alta | En construcción | D-035, P-030 |
+| REQ-004 | Registro de bloqueo en un toque, seleccionando causa de un catálogo tipificado. | Alta | En construcción | D-028 |
 | REQ-005 | Catálogo de causas de parada clasificadas como imputables / no imputables al colaborador. | Alta | En construcción | D-021, D-028 |
-| REQ-006 | Mesa de control asigna PKLs a alistadores, sin límite por persona. Solo el asignado trabaja su PKL; uno sin terminar sigue a su nombre al día siguiente. La reasignación queda registrada. | Alta | Propuesto | D-032 |
-| REQ-035 | Fecha de entrega por pedido, cargada con el pedido o calculada por tramo. El rango real va de 24 horas a 10-15 minutos. | Alta | Propuesto | D-025, P-029 |
+| REQ-006 | Mesa de control asigna PKLs a alistadores, sin límite por persona. Solo el asignado trabaja su PKL; uno sin terminar sigue a su nombre al día siguiente. La reasignación queda registrada. | Alta | En construcción | D-032 |
+| REQ-035 | Fecha de entrega por pedido, cargada con el pedido o calculada por tramo. El rango real va de 24 horas a 10-15 minutos. | Alta | En construcción | D-025, P-029 |
 | REQ-041 | Catálogo configurable de tramos de entrega. | Alta | Propuesto | D-025 |
 | REQ-036 | Alerta de pronta entrega: los pedidos cerca de vencer se marcan en rojo, con umbral configurable. | Alta | Propuesto | D-034, P-029 |
 | REQ-037 | Orden del tablero por urgencia relativa a la ventana de cada orden, no por antigüedad. | Alta | Propuesto | — |
-| REQ-040 | Entrega del PKL al validador, registro digital de errores (alistador, unidades erróneas, tipo de error) visible para el supervisor, y devolución al mismo alistador para corregir. | Alta | Propuesto | D-036 |
-| REQ-046 | Catálogos configurables de zona de despacho y zona de inventario, asignadas por mesa de control a cada pedido. | Alta | Propuesto | D-033 |
+| REQ-040 | Entrega del PKL al validador, registro digital de errores (alistador, unidades erróneas, tipo de error) visible para el supervisor, y devolución al mismo alistador para corregir. | Alta | En construcción | D-036 |
+| REQ-046 | Catálogos configurables de zona de despacho y zona de inventario, asignadas por mesa de control a cada pedido. | Alta | En construcción | D-033 |
 | REQ-047 | Vista de mesa de control: tabla de pedidos con estado, cliente, ubicación, unidades, zonas, fecha de entrega y notas. | Alta | Propuesto | D-034 |
-| REQ-048 | Armado del PKL como agrupación de pedidos. | Alta | Propuesto | D-031, P-025 |
-| REQ-049 | Cambio de fecha de entrega de un pedido por mesa de control, con la prioridad recalculada y el cambio auditado. | Alta | Propuesto | D-037 |
+| REQ-048 | Armado del PKL como agrupación de pedidos. | Alta | En construcción | D-031, P-025 |
+| REQ-049 | Cambio de fecha de entrega de un pedido por mesa de control, con la prioridad recalculada y el cambio auditado. | Alta | En construcción | D-037 |
 | REQ-038 | Operación sin papel: el alistador trabaja contra la terminal, no contra un listado impreso. | Media | Propuesto | P-006 |
 
 ## Modelo OLE (OE-2)
@@ -50,7 +50,7 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 |---|---|---|---|---|
 | REQ-018 | Autenticación por **nombre de cuenta y contraseña** (sin correo) y control de acceso por roles: operario, mesa de control, supervisor, gerencia, admin. | Alta | Hecho | D-005 |
 | REQ-019 | Cero escrituras sobre la base de datos del ERP corporativo. | Alta | Propuesto | — |
-| REQ-020 | Carga de pedidos con sus líneas tal como los ve mesa de control en el ERP, por importación o lectura del ERP. | Alta | Propuesto | D-032, P-006 |
+| REQ-020 | Carga de pedidos con sus líneas tal como los ve mesa de control en el ERP, por importación o lectura del ERP. | Alta | En construcción | D-032, P-006 |
 | REQ-021 | Acceso por URL con HTTPS desde el navegador de las computadoras del almacén y de escritorio. | Alta | Propuesto | D-002, D-020, D-023, D-039 |
 | REQ-022 | Interfaz de operario para las computadoras compartidas del almacén: pocos pasos, objetivos grandes y cambio rápido de usuario. | Alta | Propuesto | D-039 |
 | REQ-039 | Visibilidad de los alistadores activos que no tienen sesión abierta en ninguna computadora, cuyo trabajo no genera eventos y queda fuera del cálculo. | Media | Propuesto | D-039 |
@@ -65,7 +65,7 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 | REQ-029 | Registro de auditoría de toda acción administrativa sobre cuentas: alta, reseteo, cambio de rol, baja — con autor y fecha. | Alta | Hecho | — |
 | REQ-030 | Baja de cuenta por desactivación, nunca por borrado, para preservar la trazabilidad de sus eventos. | Alta | Hecho | — |
 | REQ-031 | Contraseñas almacenadas solo con hash de derivación lenta (Argon2id o bcrypt). | Alta | Hecho | — |
-| REQ-043 | Registro de auditoría general: toda acción de usuario con autor y fecha, consultable por usuario y por orden. | Alta | Propuesto | D-028 |
+| REQ-043 | Registro de auditoría general: toda acción de usuario con autor y fecha, consultable por usuario y por orden. | Alta | En construcción | D-028 |
 | REQ-044 | Historial por operario: qué órdenes tuvo, cuánto tardó y qué paradas registró. | Alta | Propuesto | D-028 |
 | REQ-045 | Configuración editable de estándares de rendimiento, ponderación por complejidad, tipos de error y alcance de la auditoría de calidad. | Alta | Propuesto | D-028 |
 | REQ-032 | Límite de intentos fallidos de ingreso por cuenta. | Alta | Propuesto | D-023 |

@@ -31,14 +31,14 @@ export class StopCausesController {
   @Post(':id/deactivate')
   @HttpCode(200)
   @Roles('admin', 'supervisor')
-  deactivate(@Param('id') id: string) {
-    return this.causes.setActive(id, false);
+  deactivate(@Req() req: { account: TokenPayload }, @Param('id') id: string) {
+    return this.causes.setActive(req.account.sub, id, false);
   }
 
   @Post(':id/reactivate')
   @HttpCode(200)
   @Roles('admin', 'supervisor')
-  reactivate(@Param('id') id: string) {
-    return this.causes.setActive(id, true);
+  reactivate(@Req() req: { account: TokenPayload }, @Param('id') id: string) {
+    return this.causes.setActive(req.account.sub, id, true);
   }
 }
