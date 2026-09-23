@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PackageOpen, Plus, Search, UserRoundCheck, X } from 'lucide-react';
 import {
   catalogsApi,
@@ -19,6 +20,7 @@ import { NewOrderDrawer } from '@/components/orders/NewOrderDrawer';
 import { OrderDrawer } from '@/components/orders/OrderDrawer';
 import { urgencyOf, type Urgency } from '@/components/orders/urgency';
 import { Badge, Button, Checkbox, EmptyState, Select, Tabs } from '@/components/ui';
+import { useMounted } from '@/components/ui/useMounted';
 import { cn } from '@/lib/cn';
 import { ORDER_STATUS_LABEL } from '@/lib/labels';
 import { formatDateTime, formatRemaining, useNow } from '@/lib/time';
@@ -143,12 +145,14 @@ export default function OrdersPage() {
               className="h-10 w-52 rounded-lg border border-line bg-surface pl-9 pr-3 text-sm outline-none transition-[border-color,box-shadow] duration-150 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/12"
             />
           </label>
-          <Select size="sm" value={zone} onChange={(e) => setZone(e.target.value)} aria-label="Filtrar por zona de inventario" className="h-10 w-56">
-            <option value="">Todas las zonas de inventario</option>
-            {data?.inventoryZones.filter((z) => z.active).map((z) => (
-              <option key={z.id} value={z.id}>{z.name}</option>
-            ))}
-          </Select>
+          <div className="w-60">
+            <Select size="sm" value={zone} onChange={(e) => setZone(e.target.value)} aria-label="Filtrar por zona de inventario" className="h-10">
+              <option value="">Todas las zonas de inventario</option>
+              {data?.inventoryZones.filter((z) => z.active).map((z) => (
+                <option key={z.id} value={z.id}>{z.name}</option>
+              ))}
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -296,7 +300,7 @@ function OrderLine({
           hot ? 'bg-danger' : order.status === 'done' ? 'bg-success/60' : 'bg-transparent',
         )}
       />
-      <span className="row-span-3 pt-0.5 lg:row-span-1 lg:pt-0">
+      <span className="row-span-6 pt-0.5 lg:row-span-1 lg:pt-0">
         {selectable && (
           <Checkbox label={`Seleccionar pedido ${order.externalId}`} checked={selected} onChange={onSelect} />
         )}
@@ -322,9 +326,11 @@ function OrderLine({
         )}
       </span>
 
-      <span className="cifras text-muted lg:text-right">
-        <span className="font-semibold text-ink">{order.units}</span>
-        <span className="text-xs"> u · {order.lineCount} l</span>
+      <span className="lg:text-right">
+        <span className="cifras block font-semibold">{order.units} u</span>
+        <span className="block text-xs text-muted">
+          {order.lineCount} {order.lineCount === 1 ? 'línea' : 'líneas'}
+        </span>
       </span>
 
       <span className="min-w-0">
@@ -363,14 +369,18 @@ function AssignBar({
 }) {
   const [pickerId, setPickerId] = useState('');
   const { busy, run } = useAction();
+  const mounted = useMounted();
   const open = orders.length > 0;
   const units = orders.reduce((s, o) => s + o.units, 0);
   const picker = pickers.find((p) => p.id === pickerId);
 
-  return (
+  if (!mounted) return null;
+
+  // En el body por la misma razón que el panel lateral: la posición fija tiene que ser la de la ventana.
+  return createPortal(
     <div
       className={cn(
-        'fixed inset-x-0 bottom-0 z-40 flex justify-center p-4 transition-[transform,opacity] duration-300 ease-[var(--ease-out)] md:pl-60',
+        'fixed inset-x-0 bottom-0 z-40 flex justify-center p-4 transition-[translate,opacity] duration-300 ease-[var(--ease-out)] md:pl-60',
         open ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0',
       )}
       aria-hidden={!open}
@@ -419,6 +429,7 @@ function AssignBar({
           <X size={16} />
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

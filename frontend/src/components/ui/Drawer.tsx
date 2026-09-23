@@ -1,13 +1,18 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useMounted } from './useMounted';
 
 /**
  * Panel lateral para el detalle o un formulario sin salir de la lista. Queda
  * montado aunque esté cerrado, así la salida también anima y quien lo cierra ve
  * a dónde vuelve.
+ *
+ * Se monta en el body: dentro de la página, un contenedor animado con transform
+ * pasaría a ser la referencia de la posición fija y el panel quedaría recortado.
  */
 export function Drawer({
   open,
@@ -27,6 +32,7 @@ export function Drawer({
   wide?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const mounted = useMounted();
 
   useEffect(() => {
     if (!open) return;
@@ -36,7 +42,9 @@ export function Drawer({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className={cn('fixed inset-0 z-50', !open && 'pointer-events-none')}
       aria-hidden={!open}
@@ -55,9 +63,9 @@ export function Drawer({
         tabIndex={-1}
         className={cn(
           'absolute inset-y-0 right-0 flex w-full flex-col bg-surface shadow-2xl shadow-brand-950/20 outline-none',
-          'transition-transform duration-300 ease-[var(--ease-drawer)]',
+          'transition-[translate,visibility] duration-300 ease-[var(--ease-drawer)]',
           wide ? 'max-w-2xl' : 'max-w-lg',
-          open ? 'translate-x-0' : 'translate-x-full',
+          open ? 'visible translate-x-0' : 'invisible translate-x-full',
         )}
       >
         <header className="flex items-start gap-4 border-b border-line px-6 py-5">
@@ -76,6 +84,7 @@ export function Drawer({
         <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
         {footer && <footer className="border-t border-line bg-canvas/60 px-6 py-4">{footer}</footer>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

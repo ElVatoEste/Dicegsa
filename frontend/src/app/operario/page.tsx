@@ -333,7 +333,7 @@ function PickListWork({
       </div>
 
       {!readOnly && (
-        <footer className="sticky bottom-0 flex flex-wrap items-center gap-3 rounded-b-2xl border-t border-line bg-surface/95 p-4 backdrop-blur">
+        <footer className="sticky bottom-0 flex flex-wrap items-center gap-3 rounded-b-2xl border-t border-line bg-surface/95 p-4 backdrop-blur md:flex-nowrap">
           <Button
             variant="warning"
             size="lg"
@@ -343,7 +343,7 @@ function PickListWork({
             <PauseCircle size={18} aria-hidden />
             Registrar parada
           </Button>
-          <p className="ml-auto text-sm text-muted">
+          <p className="min-w-0 flex-1 text-center text-sm text-muted">
             {missing > 0
               ? `${missing} ${missing === 1 ? 'producto no encontrado' : 'productos no encontrados'}: esperá a inventario o a la baja de televentas.`
               : canDeliver

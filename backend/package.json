@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "seed:admin": "bun src/accounts/seed-admin.ts",
-    "smoke": "bun scripts/smoke.ts"
+    "smoke": "bun scripts/smoke.ts",
+    "seed:demo": "bun scripts/seed-demo.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
