@@ -1,4 +1,4 @@
-import { ClipboardList, ScrollText, Users, type LucideIcon } from 'lucide-react';
+import { OctagonPause, ScrollText, Users, type LucideIcon } from 'lucide-react';
 import type { SystemRole } from './api';
 
 export interface NavItem {
@@ -18,9 +18,9 @@ const GROUPS: NavGroup[] = [
     title: 'Operación',
     items: [
       {
-        href: '/tablero/',
-        label: 'Tablero',
-        icon: ClipboardList,
+        href: '/causas/',
+        label: 'Causas de parada',
+        icon: OctagonPause,
         roles: ['supervisor', 'management', 'admin'],
       },
     ],
@@ -33,6 +33,15 @@ const GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+/**
+ * Pantalla de entrada después del ingreso. El operario entra a su vista;
+ * el resto, a la primera pantalla que su rol alcanza.
+ */
+export function homeFor(role: SystemRole): string {
+  if (role === 'operator') return '/operario/';
+  return navGroupsFor(role)[0]?.items[0]?.href ?? '/';
+}
 
 /** Grupos visibles para el rol. Un grupo sin items alcanzables no se muestra. */
 export function navGroupsFor(role: SystemRole): NavGroup[] {

@@ -12,7 +12,7 @@ import {
 
 export const systemRole = pgEnum('system_role', ['operator', 'supervisor', 'management', 'admin']);
 
-/** Rol en el piso. El cálculo de OLE cubre alistadores; el valeador se registra pero no se calcula. */
+/** Rol en el piso. El cálculo de OLE cubre alistadores; el validador se registra pero no se calcula. */
 export const floorRole = pgEnum('floor_role', ['picker', 'checker']);
 
 export const adminAction = pgEnum('admin_action', [
@@ -21,6 +21,7 @@ export const adminAction = pgEnum('admin_action', [
   'change_role',
   'deactivate',
   'reactivate',
+  'update_worker',
 ]);
 
 export const accounts = pgTable(
@@ -51,6 +52,29 @@ export const workers = pgTable('workers', {
   floorRole: floorRole('floor_role').notNull().default('picker'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Causas de parada. La imputabilidad y el nombre no se editan: el OLE ya calculado
+ * tiene que poder recalcularse igual desde sus eventos, y cambiar la clasificación
+ * de una causa en uso cambiaría la Disponibilidad de turnos pasados. Una causa mal
+ * cargada se desactiva y se crea otra.
+ */
+export const stopCauses = pgTable(
+  'stop_causes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    /** Imputable al colaborador: no descuenta de la Disponibilidad. */
+    attributable: boolean('attributable').notNull(),
+    /** Una causa desactivada deja de ofrecerse, pero sigue explicando las paradas que la usaron. */
+    active: boolean('active').notNull().default(true),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => accounts.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('stop_causes_name_unique').on(sql`lower(${t.name})`)],
+);
 
 /**
  * Rastro de auditoría de las acciones administrativas sobre cuentas.

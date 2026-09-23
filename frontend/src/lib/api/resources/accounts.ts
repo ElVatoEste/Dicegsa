@@ -1,6 +1,8 @@
 import { api, PATHS } from '../client';
 import type { SystemRole } from './auth';
 
+export type FloorRole = 'picker' | 'checker';
+
 export interface Account {
   id: string;
   accountName: string;
@@ -9,6 +11,9 @@ export interface Account {
   mustChangePassword: boolean;
   createdAt: string;
   updatedAt: string;
+  /** Perfil de colaborador; null en las cuentas que no trabajan en el piso. */
+  fullName: string | null;
+  floorRole: FloorRole | null;
 }
 
 export type AdminAction =
@@ -16,7 +21,8 @@ export type AdminAction =
   | 'reset_password'
   | 'change_role'
   | 'deactivate'
-  | 'reactivate';
+  | 'reactivate'
+  | 'update_worker';
 
 export interface AdminEvent {
   id: string;
@@ -46,6 +52,9 @@ export const accountsApi = {
 
   changeRole: (token: string, id: string, role: SystemRole) =>
     api.patch<Account>(PATHS.accounts.role(id), { role }, { token }),
+
+  saveWorker: (token: string, id: string, fullName: string, floorRole: FloorRole) =>
+    api.put<unknown>(PATHS.accounts.worker(id), { fullName, floorRole }, { token }),
 
   setActive: (token: string, id: string, active: boolean) =>
     api.post<Account>(

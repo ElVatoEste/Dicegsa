@@ -1,9 +1,22 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { SystemRole, TokenPayload } from '../auth/access';
 import { requireText } from '../auth/dto';
 import { JwtGuard } from '../auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
-import { AccountsService } from './accounts.service';
+import { floorRole } from '../db/schema';
+import { AccountsService, type FloorRole } from './accounts.service';
 
 @Controller('accounts')
 @UseGuards(JwtGuard)
@@ -58,5 +71,22 @@ export class AccountsController {
   @HttpCode(200)
   reactivate(@Req() req: { account: TokenPayload }, @Param('id') id: string) {
     return this.accounts.setActive(req.account.sub, id, true);
+  }
+
+  @Put(':id/worker')
+  upsertWorker(
+    @Req() req: { account: TokenPayload },
+    @Param('id') id: string,
+    @Body() dto: { fullName: string; floorRole: FloorRole },
+  ) {
+    if (!floorRole.enumValues.includes(dto?.floorRole)) {
+      throw new BadRequestException('El campo floorRole no es un rol en el piso válido');
+    }
+    return this.accounts.upsertWorker(
+      req.account.sub,
+      id,
+      requireText(dto.fullName, 'fullName'),
+      dto.floorRole,
+    );
   }
 }

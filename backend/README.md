@@ -31,22 +31,27 @@ El proyecto de Compose se llama `dicegsa`. Sin fijarlo, Compose lo deriva del di
 
 ## Qué hay implementado
 
-Solo el módulo de cuentas y autenticación. Las tablas de órdenes, Kanban, paradas y
-cálculo de OLE no están escritas todavía: su forma depende de dudas abiertas del registro
-(`P-001`, `P-017`, `P-018`).
+Cuentas y autenticación, perfil de colaborador y catálogo de causas de parada. Las
+tablas de órdenes, Kanban y cálculo de OLE no están escritas todavía: esperan a que se
+confirme qué es un PKL (`P-017`).
 
 | Método | Ruta | Quién |
 |---|---|---|
 | `POST` | `/auth/login` | público |
 | `POST` | `/auth/password` | cuenta autenticada |
 | `GET` | `/auth/me` | cuenta autenticada |
-| `GET` | `/cuentas` | admin |
-| `POST` | `/cuentas` | admin |
-| `POST` | `/cuentas/:id/reseteo` | admin |
-| `PATCH` | `/cuentas/:id/rol` | admin |
-| `POST` | `/cuentas/:id/baja` | admin |
-| `POST` | `/cuentas/:id/reactivacion` | admin |
-| `GET` | `/cuentas/auditoria` | admin |
+| `GET` | `/accounts` | admin |
+| `POST` | `/accounts` | admin |
+| `POST` | `/accounts/:id/password-reset` | admin |
+| `PATCH` | `/accounts/:id/role` | admin |
+| `PUT` | `/accounts/:id/worker` | admin |
+| `POST` | `/accounts/:id/deactivate` | admin |
+| `POST` | `/accounts/:id/reactivate` | admin |
+| `GET` | `/accounts/audit-log` | admin |
+| `GET` | `/stop-causes` | cuenta autenticada |
+| `POST` | `/stop-causes` | supervisor, admin |
+| `POST` | `/stop-causes/:id/deactivate` | supervisor, admin |
+| `POST` | `/stop-causes/:id/reactivate` | supervisor, admin |
 
 ### Eventos en vivo
 
@@ -56,8 +61,8 @@ siendo la de un solo uso.
 
 | Sala | Contenido | Roles |
 |---|---|---|
-| `tablero` | Transiciones del Kanban y paradas. | supervisor, gerencia, admin |
-| `cuentas` | Altas, reseteos, cambios de rol y bajas. | admin |
+| `board` | Transiciones del Kanban, paradas y cambios del catálogo de causas. | supervisor, gerencia, admin |
+| `accounts` | Altas, reseteos, cambios de rol, perfiles y bajas. | admin |
 
 El servidor emite `listo` con las salas asignadas al conectar, y después `evento` con
 `{ tipo, sala, datos, emitidoEn }`. Hoy solo publica la sala `cuentas`; la sala `tablero`

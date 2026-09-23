@@ -5,6 +5,7 @@ import { ApiError, authApi } from '@/lib/api';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/components/Toasts';
 import { Button, Field, Input } from '@/components/ui';
+import { homeFor } from '@/lib/nav';
 import { saveSession } from '@/lib/session';
 
 export default function LoginPage() {
@@ -21,9 +22,7 @@ export default function LoginPage() {
       saveSession(session);
       window.location.href = session.mustChangePassword
         ? '/cambiar-password/'
-        : session.role === 'admin'
-          ? '/cuentas/'
-          : '/tablero/';
+        : homeFor(session.role);
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor');
       setSubmitting(false);

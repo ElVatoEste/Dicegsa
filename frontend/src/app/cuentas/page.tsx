@@ -1,14 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { KeyRound, Power, UserPlus, Users } from 'lucide-react';
-import { accountsApi, ApiError, type Account, type SystemRole } from '@/lib/api';
+import { Check, KeyRound, Power, UserPlus, Users } from 'lucide-react';
+import { accountsApi, ApiError, type Account, type FloorRole, type SystemRole } from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
 import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { Shell } from '@/components/Shell';
 import { useToast } from '@/components/Toasts';
 import { Badge, Button, EmptyState, Field, Input, Select, Table, Td, Th } from '@/components/ui';
-import { ROLE_LABEL, ROLES } from '@/lib/labels';
+import { FLOOR_ROLE_LABEL, FLOOR_ROLES, ROLE_LABEL, ROLES } from '@/lib/labels';
 import { useRealtime } from '@/lib/events';
 
 interface Handover {
@@ -150,6 +150,7 @@ export default function AccountsPage() {
             <tr>
               <Th>Cuenta</Th>
               <Th>Rol</Th>
+              <Th>Colaborador</Th>
               <Th>Estado</Th>
               <Th className="text-right">Acciones</Th>
             </tr>
@@ -188,6 +189,23 @@ export default function AccountsPage() {
                       </option>
                     ))}
                   </Select>
+                </Td>
+                <Td>
+                  {account.role === 'operator' ? (
+                    <WorkerForm
+                      account={account}
+                      busy={busy}
+                      onSave={(fullName, floorRole) => {
+                        if (!token) return;
+                        void run(async () => {
+                          await accountsApi.saveWorker(token, account.id, fullName, floorRole);
+                          toast.success(`Perfil de ${account.accountName} guardado`);
+                        });
+                      }}
+                    />
+                  ) : (
+                    <span className="text-sm text-muted">No trabaja en el piso</span>
+                  )}
                 </Td>
                 <Td>
                   {account.active ? (
@@ -251,5 +269,68 @@ export default function AccountsPage() {
         trazables.
       </p>
     </Shell>
+  );
+}
+
+/**
+ * Nombre y rol en el piso de una cuenta de operario. El OLE se calcula sobre este
+ * perfil, así que una cuenta sin él no aparece en la medición.
+ */
+function WorkerForm({
+  account,
+  busy,
+  onSave,
+}: {
+  account: Account;
+  busy: boolean;
+  onSave: (fullName: string, floorRole: FloorRole) => void;
+}) {
+  const [fullName, setFullName] = useState(account.fullName ?? '');
+  const [floorRole, setFloorRole] = useState<FloorRole>(account.floorRole ?? 'picker');
+
+  const dirty =
+    fullName.trim() !== (account.fullName ?? '') || floorRole !== (account.floorRole ?? 'picker');
+
+  return (
+    <form
+      className="flex items-center gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (fullName.trim()) onSave(fullName, floorRole);
+      }}
+    >
+      <Input
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+        placeholder="Nombre completo"
+        aria-label={`Nombre completo de ${account.accountName}`}
+        size="sm"
+        className="w-44"
+      />
+      <Select
+        value={floorRole}
+        size="sm"
+        className="w-32"
+        aria-label={`Rol en el piso de ${account.accountName}`}
+        onChange={(e) => setFloorRole(e.target.value as FloorRole)}
+      >
+        {FLOOR_ROLES.map((r) => (
+          <option key={r} value={r}>
+            {FLOOR_ROLE_LABEL[r]}
+          </option>
+        ))}
+      </Select>
+      {/* Reserva su lugar aunque no haya cambios, así la fila no se reacomoda al tipear. */}
+      <Button
+        type="submit"
+        size="sm"
+        variant="secondary"
+        disabled={busy || !dirty || !fullName.trim()}
+        aria-label="Guardar perfil"
+        className={dirty ? '' : 'invisible'}
+      >
+        <Check size={14} aria-hidden />
+      </Button>
+    </form>
   );
 }

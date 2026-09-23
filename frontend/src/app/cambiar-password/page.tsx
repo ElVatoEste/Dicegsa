@@ -5,6 +5,7 @@ import { ApiError, authApi, type SystemRole } from '@/lib/api';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/components/Toasts';
 import { Button, Field, Input } from '@/components/ui';
+import { homeFor } from '@/lib/nav';
 import { clearSession, readSession, saveSession } from '@/lib/session';
 
 const MIN_LENGTH = 8;
@@ -43,7 +44,7 @@ export default function ChangePasswordPage() {
       const { token: fresh } = await authApi.changePassword(token, currentPassword, newPassword);
       saveSession({ token: fresh, accountName, role, mustChangePassword: false });
       toast.success('Contraseña actualizada');
-      window.location.href = role === 'admin' ? '/cuentas/' : '/tablero/';
+      window.location.href = homeFor(role);
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor');
       setSubmitting(false);

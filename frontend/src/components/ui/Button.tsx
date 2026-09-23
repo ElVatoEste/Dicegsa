@@ -11,7 +11,7 @@ const VARIANTS: Record<Variant, string> = {
   danger: 'border border-danger/25 bg-danger-soft text-danger hover:bg-danger hover:text-white',
 };
 
-// Alturas cómodas para tocar con guantes; en el móvil el objetivo chico se falla.
+// Alturas cómodas para tocar con guantes: un objetivo chico se falla.
 const SIZES: Record<Size, string> = {
   sm: 'h-9 gap-1.5 px-3 text-sm',
   md: 'h-11 gap-2 px-4 text-sm',

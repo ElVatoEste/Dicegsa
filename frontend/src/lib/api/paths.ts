@@ -15,5 +15,11 @@ export const PATHS = {
     role: (id: string) => `/accounts/${id}/role`,
     deactivate: (id: string) => `/accounts/${id}/deactivate`,
     reactivate: (id: string) => `/accounts/${id}/reactivate`,
+    worker: (id: string) => `/accounts/${id}/worker`,
+  },
+  stopCauses: {
+    root: '/stop-causes',
+    deactivate: (id: string) => `/stop-causes/${id}/deactivate`,
+    reactivate: (id: string) => `/stop-causes/${id}/reactivate`,
   },
 } as const;

@@ -5,5 +5,7 @@ export {
   type Account,
   type AdminAction,
   type AdminEvent,
+  type FloorRole,
   type WithHandover,
 } from './resources/accounts';
+export { stopCausesApi, type StopCause } from './resources/stop-causes';

@@ -8,7 +8,7 @@ import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { Shell } from '@/components/Shell';
 import { useToast } from '@/components/Toasts';
 import { Badge, EmptyState } from '@/components/ui';
-import { ACTION_LABEL, DETAIL_LABEL } from '@/lib/labels';
+import { ACTION_LABEL, DETAIL_LABEL, detailValue } from '@/lib/labels';
 import { useRealtime } from '@/lib/events';
 
 export default function AuditLogPage() {
@@ -92,7 +92,7 @@ export default function AuditLogPage() {
               {event.details && (
                 <Badge tone="neutral">
                   {Object.entries(event.details)
-                    .map(([key, value]) => `${DETAIL_LABEL[key] ?? key}: ${value}`)
+                    .map(([key, value]) => `${DETAIL_LABEL[key] ?? key}: ${detailValue(value)}`)
                     .join(', ')}
                 </Badge>
               )}
