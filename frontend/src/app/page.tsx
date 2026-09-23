@@ -43,14 +43,14 @@ export default function LoginPage() {
           className="absolute inset-0 bg-linear-to-b from-brand-950/80 via-brand-950/25 to-brand-950/70"
         />
         <div className="relative p-12">
-          <Logo tone="dark" />
+          <Logo tone="dark" size="lg" />
         </div>
       </div>
 
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="lg:hidden">
-            <Logo />
+            <Logo size="lg" />
           </div>
 
           <h1 className="mt-8 text-2xl font-semibold tracking-tight lg:mt-0">Ingresar</h1>

@@ -56,7 +56,7 @@ export default function ChangePasswordPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <Logo />
+        <Logo size="lg" />
 
         <h1 className="mt-8 text-2xl font-semibold tracking-tight">Elegí tu contraseña</h1>
         <p className="mt-1 text-sm text-muted">
