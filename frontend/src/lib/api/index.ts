@@ -33,3 +33,4 @@ export {
   type PickListStatus,
   type ValidationErrorInput,
 } from './resources/orders';
+export { metricsApi, type Factors, type MetricsReport, type WorkerRow } from './resources/metrics';

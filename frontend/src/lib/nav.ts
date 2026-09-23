@@ -1,4 +1,4 @@
-import { ClipboardCheck, PackageSearch, ScrollText, SlidersHorizontal, Users, type LucideIcon } from 'lucide-react';
+import { ChartColumn, ClipboardCheck, PackageSearch, ScrollText, SlidersHorizontal, Users, type LucideIcon } from 'lucide-react';
 import type { SystemRole } from './api';
 
 export interface NavItem {
@@ -28,6 +28,12 @@ const GROUPS: NavGroup[] = [
         label: 'Validación',
         icon: ClipboardCheck,
         roles: ['validator', 'supervisor', 'admin'],
+      },
+      {
+        href: '/metricas/',
+        label: 'Métricas',
+        icon: ChartColumn,
+        roles: ['supervisor', 'management', 'admin'],
       },
     ],
   },

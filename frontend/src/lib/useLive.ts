@@ -8,12 +8,14 @@ import { useToast } from '@/components/Toasts';
 /**
  * Carga un recurso y lo vuelve a pedir cuando llega un evento que le importa.
  * `data` es null solo hasta la primera respuesta, así la pantalla distingue
- * "cargando" de "vacío".
+ * "cargando" de "vacío". Cuando cambia `key` (un período, un filtro del
+ * servidor) se vuelve a pedir.
  */
 export function useLive<T>(
   token: string | undefined,
   load: (token: string) => Promise<T>,
   relevant: (event: RealtimeEvent) => boolean = () => true,
+  key = '',
 ) {
   const [data, setData] = useState<T | null>(null);
   const toast = useToast();
@@ -29,7 +31,7 @@ export function useLive<T>(
     }
     // toast viene de un contexto estable; incluirlo rearmaría el efecto en cada render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, key]);
 
   useEffect(() => {
     void reload();

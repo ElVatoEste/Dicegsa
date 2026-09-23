@@ -27,22 +27,22 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 ## Modelo OLE (OE-2)
 | # | Requisito | Prioridad | Estado | Decisión |
 |---|---|---|---|---|
-| REQ-007 | Cálculo de Disponibilidad Neta (D) descontando bloqueos no imputables del tiempo de turno. | Alta | Propuesto | — |
+| REQ-007 | Cálculo de Disponibilidad Neta (D) descontando bloqueos no imputables del tiempo de turno. | Alta | En construcción | — |
 | REQ-008 | Catálogo de estándares de rendimiento. Línea base vigente: **15 líneas/hora por alistador**, plana. | Alta | Propuesto | D-028 |
-| REQ-009 | Cálculo de Desempeño (P) como líneas reales sobre estándar, con ponderación por complejidad (alta rotación, cadena de frío, psicotrópicos) sobre la línea base plana. | Alta | Propuesto | D-028 |
+| REQ-009 | Cálculo de Desempeño (P) como líneas reales sobre estándar, con ponderación por complejidad (alta rotación, cadena de frío, psicotrópicos) sobre la línea base plana. | Alta | En construcción | D-028 |
 | REQ-010 | Registro de errores de despacho por causa de origen: SKU, lote, cantidad. | Alta | Propuesto | — |
-| REQ-011 | Cálculo de Calidad (Q) a partir de auditorías de despacho, como tasa con denominador explícito y no como conteo suelto de errores. | Alta | Propuesto | D-028 |
-| REQ-033 | Cálculo de las métricas vigentes (productos / 8 h y unidades / 8 h, diario y mensual) junto al OLE, para mostrar qué reclasifica. | Alta | Propuesto | D-040 |
+| REQ-011 | Cálculo de Calidad (Q) a partir de auditorías de despacho, como tasa con denominador explícito y no como conteo suelto de errores. | Alta | En construcción | D-028 |
+| REQ-033 | Cálculo de las métricas vigentes (productos / 8 h y unidades / 8 h, diario y mensual) junto al OLE, para mostrar qué reclasifica. | Alta | En construcción | D-040 |
 | REQ-034 | Roles operativos diferenciados: alistador y validador, con estándar y evaluación propios. | Media | En construcción | D-036 |
-| REQ-012 | Cálculo de OLE = D × P × Q por colaborador, turno y período. | Alta | Propuesto | — |
+| REQ-012 | Cálculo de OLE = D × P × Q por colaborador, turno y período. | Alta | En construcción | — |
 | REQ-013 | Desglose auditable: todo valor de OLE debe poder abrirse hasta los eventos que lo componen. | Alta | Propuesto | — |
 
 ## Supervisión y reportes
 | # | Requisito | Prioridad | Estado | Decisión |
 |---|---|---|---|---|
-| REQ-014 | Panel de supervisión en vivo con cuellos de botella y órdenes bloqueadas. | Alta | Propuesto | — |
-| REQ-015 | Reporte comparativo método tradicional (tiempo bruto) vs. OLE sobre el mismo período. | Alta | Propuesto | — |
-| REQ-016 | Reporte de métricas por colaborador y período, para que los supervisores asignen bonificaciones o sanciones. La plataforma no calcula montos. | Media | Propuesto | D-029, P-032 |
+| REQ-014 | Panel de supervisión en vivo con cuellos de botella y órdenes bloqueadas. | Alta | En construcción | — |
+| REQ-015 | Reporte comparativo método tradicional (tiempo bruto) vs. OLE sobre el mismo período. | Alta | En construcción | — |
+| REQ-016 | Reporte de métricas por colaborador y período, para que los supervisores asignen bonificaciones o sanciones. La plataforma no calcula montos. | Media | En construcción | D-029, P-032 |
 | REQ-017 | Exportación de reportes para la gerencia. | Baja | Propuesto | — |
 
 ## Plataforma
@@ -66,7 +66,7 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 | REQ-030 | Baja de cuenta por desactivación, nunca por borrado, para preservar la trazabilidad de sus eventos. | Alta | Hecho | — |
 | REQ-031 | Contraseñas almacenadas solo con hash de derivación lenta (Argon2id o bcrypt). | Alta | Hecho | — |
 | REQ-043 | Registro de auditoría general: toda acción de usuario con autor y fecha, consultable por usuario y por orden. | Alta | En construcción | D-028 |
-| REQ-044 | Historial por operario: qué órdenes tuvo, cuánto tardó y qué paradas registró. | Alta | Propuesto | D-028 |
+| REQ-044 | Historial por operario: qué órdenes tuvo, cuánto tardó y qué paradas registró. | Alta | En construcción | D-028 |
 | REQ-045 | Configuración editable de estándares de rendimiento, ponderación por complejidad, tipos de error y alcance de la auditoría de calidad. | Alta | Propuesto | D-028 |
 | REQ-050 | Solicitud de cambio de contraseña desde el ingreso, que le llega al administrador y queda registrada con su resolución. | Media | Hecho | D-041 |
 | REQ-032 | Límite de intentos fallidos de ingreso por cuenta. | Alta | Propuesto | D-023 |

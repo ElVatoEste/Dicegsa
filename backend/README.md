@@ -81,6 +81,7 @@ del PKL contra el API en marcha y deja cuentas `smoke_*` en la base.
 | `POST` | `/pick-lists/:id/deliver` | operario asignado |
 | `GET` | `/pick-lists/validation-queue` | validador, supervisor, admin |
 | `POST` | `/pick-lists/:id/validate` | validador |
+| `GET` | `/metrics?from=AAAA-MM-DD&to=AAAA-MM-DD` | supervisor, gerencia, admin |
 | `GET` | `/pick-lists/:id` | mesa de control, supervisor, gerencia, admin, validador |
 
 ### Eventos en vivo

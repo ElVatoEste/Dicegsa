@@ -13,6 +13,10 @@ export interface CatalogEntry {
 export interface Settings {
   /** Minutos antes de la entrega a partir de los cuales un pedido es de pronta entrega. */
   urgentThresholdMinutes: number;
+  /** Horas de la jornada; el método vigente divide todo por este número. */
+  workdayHours: number;
+  /** Línea base de desempeño: líneas por hora de un alistador. */
+  standardLinesPerHour: number;
 }
 
 export const catalogsApi = {

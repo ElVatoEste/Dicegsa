@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Timer } from 'lucide-react';
-import { catalogsApi, type CatalogKind } from '@/lib/api';
+import { Clock, Gauge, Timer, type LucideIcon } from 'lucide-react';
+import { catalogsApi, type CatalogKind, type Settings } from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
 import { Shell } from '@/components/Shell';
 import { CatalogPanel } from '@/components/settings/CatalogPanel';
@@ -52,56 +52,111 @@ export default function SettingsPage() {
   );
 }
 
+const PARAMETERS: {
+  key: keyof Settings;
+  title: string;
+  hint: string;
+  unit: string;
+  icon: LucideIcon;
+  tone: string;
+}[] = [
+  {
+    key: 'urgentThresholdMinutes',
+    title: 'Pronta entrega',
+    hint: 'Cuánto antes de la entrega un pedido pasa a marcarse en rojo.',
+    unit: 'minutos',
+    icon: Timer,
+    tone: 'bg-danger-soft text-danger',
+  },
+  {
+    key: 'workdayHours',
+    title: 'Jornada',
+    hint: 'Horas por día trabajado. El método vigente divide productos y unidades por este número.',
+    unit: 'horas',
+    icon: Clock,
+    tone: 'bg-brand-100 text-brand-700',
+  },
+  {
+    key: 'standardLinesPerHour',
+    title: 'Estándar de desempeño',
+    hint: 'Líneas por hora que se espera de un alistador. Es la base del factor de desempeño.',
+    unit: 'líneas/h',
+    icon: Gauge,
+    tone: 'bg-brand-100 text-brand-700',
+  },
+];
+
 function Parameters({ token, canEdit }: { token: string; canEdit: boolean }) {
   const { data, setData } = useLive(token, catalogsApi.settings, (e) => e.type === 'settings.changed');
-  const [minutes, setMinutes] = useState('');
+  return (
+    <div className="escalona grid max-w-3xl gap-4">
+      {PARAMETERS.map((p) => (
+        <Parameter key={p.key} def={p} value={data?.[p.key]} canEdit={canEdit} token={token} onSaved={setData} />
+      ))}
+    </div>
+  );
+}
+
+function Parameter({
+  def,
+  value,
+  canEdit,
+  token,
+  onSaved,
+}: {
+  def: (typeof PARAMETERS)[number];
+  value: number | undefined;
+  canEdit: boolean;
+  token: string;
+  onSaved: (s: Settings) => void;
+}) {
+  const [draft, setDraft] = useState('');
   const { busy, run } = useAction();
+  const Icon = def.icon;
 
   useEffect(() => {
-    if (data) setMinutes(String(data.urgentThresholdMinutes));
-  }, [data]);
+    if (value !== undefined) setDraft(String(value));
+  }, [value]);
 
-  const value = Number(minutes);
-  const valid = Number.isInteger(value) && value > 0;
-  const changed = data && valid && value !== data.urgentThresholdMinutes;
+  const parsed = Number(draft);
+  const changed = value !== undefined && Number.isFinite(parsed) && parsed > 0 && parsed !== value;
 
   return (
-    <div className="max-w-xl rounded-2xl border border-line bg-surface p-5">
-      <div className="flex items-start gap-4">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-danger-soft text-danger">
-          <Timer size={18} aria-hidden />
-        </span>
-        <div className="flex-1">
-          <p className="font-semibold">Pronta entrega</p>
-          <p className="mt-0.5 text-sm text-muted">
-            Cuánto antes de la entrega un pedido pasa a marcarse en rojo en la vista de mesa de control.
-          </p>
-          <form
-            className="mt-4 flex items-center gap-2"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!changed) return;
-              await run(async () => setData(await catalogsApi.saveSetting(token, 'urgentThresholdMinutes', value)), 'Umbral guardado');
-            }}
-          >
-            <Input
-              type="number"
-              min={1}
-              value={minutes}
-              disabled={!canEdit}
-              onChange={(e) => setMinutes(e.target.value)}
-              aria-label="Minutos antes de la entrega"
-              className="cifras w-28"
-            />
-            <span className="text-sm text-muted">minutos</span>
-            {canEdit && (
-              <Button type="submit" disabled={!changed} loading={busy} className="ml-auto">
-                Guardar
-              </Button>
-            )}
-          </form>
-        </div>
+    <div className="flex items-start gap-4 rounded-2xl border border-line bg-surface p-5">
+      <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${def.tone}`}>
+        <Icon size={18} aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">{def.title}</p>
+        <p className="mt-0.5 text-sm text-muted">{def.hint}</p>
       </div>
+      <form
+        className="flex items-center gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!changed) return;
+          await run(async () => onSaved(await catalogsApi.saveSetting(token, def.key, parsed)), `${def.title} guardado`);
+        }}
+      >
+        <div className="w-24">
+          <Input
+            type="number"
+            min={1}
+            step="any"
+            value={draft}
+            disabled={!canEdit}
+            onChange={(e) => setDraft(e.target.value)}
+            aria-label={def.title}
+            className="cifras"
+          />
+        </div>
+        <span className="w-16 text-sm text-muted">{def.unit}</span>
+        {canEdit && (
+          <Button type="submit" size="sm" disabled={!changed} loading={busy}>
+            Guardar
+          </Button>
+        )}
+      </form>
     </div>
   );
 }
