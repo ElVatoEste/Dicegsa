@@ -69,6 +69,7 @@ del PKL contra el API en marcha y deja cuentas `smoke_*` en la base.
 | `POST` | `/orders` | mesa de control, admin |
 | `PATCH` | `/orders/:id` | mesa de control, admin |
 | `POST` | `/orders/:id/cancel` | mesa de control, admin |
+| `POST` | `/orders/:id/release` | mesa de control, admin |
 | `POST` | `/orders/lines/:lineId/cancel` | mesa de control, admin |
 | `GET` | `/pick-lists/pickers` | mesa de control, supervisor, gerencia, admin |
 | `POST` | `/pick-lists` | mesa de control, admin |

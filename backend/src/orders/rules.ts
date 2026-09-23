@@ -37,3 +37,11 @@ export function afterValidation(errorCount: number): PickListStatus {
 export function canReassign(status: PickListStatus): boolean {
   return isWorkable(status);
 }
+
+/**
+ * Un pedido vuelve a "sin asignar" solo si nadie empezó a trabajarlo: con alguna
+ * línea ya marcada, sacarlo del PKL borraría trabajo que el alistador hizo.
+ */
+export function canRelease(pickList: PickListStatus, lines: LineStatus[]): boolean {
+  return isWorkable(pickList) && lines.every((s) => s === 'pending' || s === 'cancelled');
+}

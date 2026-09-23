@@ -17,6 +17,10 @@ export function OrderCard({
   selected,
   onSelect,
   onOpen,
+  draggable = false,
+  dragging = false,
+  onDragStart,
+  onDragEnd,
 }: {
   order: OrderRow;
   urgency: Urgency;
@@ -26,6 +30,11 @@ export function OrderCard({
   selected: boolean;
   onSelect: (on: boolean) => void;
   onOpen: () => void;
+  draggable?: boolean;
+  /** La tarjeta es parte de lo que se está arrastrando. */
+  dragging?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
 }) {
   const hot = urgency !== 'normal' && order.status !== 'done';
   const initials = order.assignee?.name
@@ -42,9 +51,14 @@ export function OrderCard({
       tabIndex={0}
       role="button"
       aria-label={`Abrir pedido ${order.externalId}`}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       className={cn(
-        'relative cursor-pointer overflow-hidden rounded-xl border bg-surface p-3.5 pl-4 text-sm outline-none',
-        'transition-[border-color,box-shadow,translate] duration-150 hover:-translate-y-px hover:shadow-md hover:shadow-brand-900/8',
+        'relative overflow-hidden rounded-xl border bg-surface p-3.5 pl-4 text-sm outline-none',
+        'transition-[border-color,box-shadow,translate,opacity,scale] duration-150 hover:-translate-y-px hover:shadow-md hover:shadow-brand-900/8',
+        draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
+        dragging && 'scale-[0.98] opacity-40',
         'focus-visible:ring-4 focus-visible:ring-brand-500/20',
         selected ? 'border-brand-400 ring-2 ring-brand-300/60' : hot ? 'border-danger/30' : 'border-line hover:border-brand-200',
       )}

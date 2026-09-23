@@ -16,12 +16,15 @@ export function AssignBar({
   token,
   onClear,
   onDone,
+  openSignal,
 }: {
   orders: OrderRow[];
   pickers: Picker[];
   token: string;
   onClear: () => void;
   onDone: () => void;
+  /** Abre el selector de alistador, cuando la selección llega arrastrando tarjetas. */
+  openSignal?: number;
 }) {
   const [pickerId, setPickerId] = useState('');
   const { busy, run } = useAction();
@@ -55,6 +58,7 @@ export function AssignBar({
             className="h-10"
             value={pickerId}
             onChange={setPickerId}
+            openSignal={openSignal}
             aria-label="Alistador"
             placeholder="Elegí un alistador"
             searchPlaceholder="Buscar alistador…"

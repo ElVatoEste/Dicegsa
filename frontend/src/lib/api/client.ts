@@ -65,7 +65,9 @@ class ApiService {
       const payload = await response.json().catch(() => null);
       throw new ApiError(response.status, payload?.message ?? 'No se pudo completar la operación');
     }
-    return response.status === 204 ? (undefined as T) : response.json();
+    // Una acción que no devuelve nada responde con el cuerpo vacío, no con JSON.
+    const text = await response.text();
+    return (text ? JSON.parse(text) : undefined) as T;
   }
 }
 

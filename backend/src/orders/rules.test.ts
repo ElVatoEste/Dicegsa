@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { afterValidation, canDeliver, canReassign, isWorkable, orderStatus } from './rules';
+import { afterValidation, canDeliver, canReassign, canRelease, isWorkable, orderStatus } from './rules';
 
 describe('estado del pedido', () => {
   test('una baja manda sobre cualquier estado del PKL', () => {
@@ -51,5 +51,22 @@ describe('validación y reasignación', () => {
     expect(canReassign('picking')).toBe(true);
     expect(canReassign('validating')).toBe(false);
     expect(canReassign('done')).toBe(false);
+  });
+});
+
+describe('liberar un pedido del PKL', () => {
+  test('se libera si ninguna línea fue marcada', () => {
+    expect(canRelease('assigned', ['pending', 'pending'])).toBe(true);
+    expect(canRelease('picking', ['pending', 'cancelled'])).toBe(true);
+  });
+
+  test('con una línea marcada ya no se libera', () => {
+    expect(canRelease('picking', ['picked', 'pending'])).toBe(false);
+    expect(canRelease('picking', ['not_found'])).toBe(false);
+  });
+
+  test('en validación o terminado no se libera', () => {
+    expect(canRelease('validating', ['pending'])).toBe(false);
+    expect(canRelease('done', ['pending'])).toBe(false);
   });
 });

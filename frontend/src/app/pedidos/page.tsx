@@ -20,8 +20,10 @@ import { OrderCard } from '@/components/orders/OrderCard';
 import { OrderDrawer } from '@/components/orders/OrderDrawer';
 import { urgencyOf } from '@/components/orders/urgency';
 import { Button, Checkbox, Combobox } from '@/components/ui';
+import { cn } from '@/lib/cn';
 import { useNow } from '@/lib/time';
-import { useLive } from '@/lib/useLive';
+import { useAction, useLive } from '@/lib/useLive';
+import { useToast } from '@/components/Toasts';
 
 type Column = Exclude<OrderStatus, 'cancelled'>;
 
@@ -66,6 +68,11 @@ export default function OrdersPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const now = useNow();
+  const toast = useToast();
+  const { run } = useAction();
+  const [drag, setDrag] = useState<{ ids: string[]; from: Column } | null>(null);
+  const [over, setOver] = useState<Column | null>(null);
+  const [assignSignal, setAssignSignal] = useState(0);
 
   const threshold = data?.settings.urgentThresholdMinutes ?? 120;
   const zoneName = useMemo(() => {
@@ -93,6 +100,49 @@ export default function OrdersPage() {
 
   const selectedRows = columns.unassigned.filter((o) => selected.has(o.id));
   const openOrder = data?.orders.find((o) => o.id === openId) ?? null;
+
+  /** Qué columnas aceptan lo que se está arrastrando. Solo se mueve lo que mesa de control decide. */
+  function accepts(target: Column): boolean {
+    if (!drag || drag.from === target) return false;
+    return (
+      (drag.from === 'unassigned' && target === 'in_progress') ||
+      (drag.from === 'in_progress' && target === 'unassigned')
+    );
+  }
+
+  async function drop(target: Column) {
+    const moving = drag;
+    setDrag(null);
+    setOver(null);
+    if (!moving || moving.from === target) return;
+
+    if (moving.from === 'unassigned' && target === 'in_progress') {
+      // Se asigna con la barra de abajo: soltar selecciona y abre el selector de alistador.
+      setSelected(new Set(moving.ids));
+      // Se abre cuando la barra terminó de entrar; antes quedaría posicionado a mitad de camino.
+      setTimeout(() => setAssignSignal((n) => n + 1), 320);
+      return;
+    }
+    if (moving.from === 'in_progress' && target === 'unassigned') {
+      const ok = await run(
+        () => Promise.all(moving.ids.map((id) => ordersApi.release(token!, id))),
+        moving.ids.length === 1 ? 'Pedido devuelto a sin asignar' : `${moving.ids.length} pedidos devueltos a sin asignar`,
+      );
+      if (ok) void reload();
+      return;
+    }
+  }
+
+  /** El navegador no dispara el soltado sobre una columna que rechaza: el aviso sale al terminar el arrastre. */
+  function refuse(target: Column) {
+    toast.warning(
+      target === 'validating'
+        ? 'Pasa a validación cuando el alistador entrega el PKL.'
+        : target === 'done'
+          ? 'Se finaliza cuando el validador aprueba el PKL.'
+          : 'Ese pedido ya salió de preparación.',
+    );
+  }
 
   function toggle(id: string, on: boolean) {
     setSelected((prev) => {
@@ -157,7 +207,29 @@ export default function OrdersPage() {
             const urgent = status === 'done' ? 0 : all.filter((o) => urgencyOf(o.dueAt, now, threshold) !== 'normal').length;
             const selectable = canEdit && status === 'unassigned';
             return (
-              <section key={status} aria-label={title} className="flex max-h-[calc(100vh-13rem)] flex-col rounded-2xl bg-brand-100/45">
+              <section
+                key={status}
+                aria-label={title}
+                onDragOver={(e) => {
+                  if (!drag) return;
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = accepts(status) ? 'move' : 'none';
+                  if (over !== status) setOver(status);
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  void drop(status);
+                }}
+                className={cn(
+                  'flex max-h-[calc(100vh-13rem)] flex-col rounded-2xl border-2 border-transparent bg-brand-100/45 transition-[background-color,border-color,opacity] duration-150',
+                  drag && drag.from !== status && !accepts(status) && 'opacity-45',
+                  drag && accepts(status) && 'border-dashed border-brand-300',
+                  over === status && accepts(status) && 'border-brand-500 bg-brand-100',
+                )}
+              >
                 <header className="flex items-center gap-2 px-3.5 pb-2 pt-3">
                   {selectable && all.length > 0 && (
                     <Checkbox
@@ -199,6 +271,20 @@ export default function OrdersPage() {
                           selected={selected.has(order.id)}
                           onSelect={(on) => toggle(order.id, on)}
                           onOpen={() => setOpenId(order.id)}
+                          draggable={canEdit && (status === 'unassigned' || status === 'in_progress')}
+                          dragging={drag?.ids.includes(order.id) ?? false}
+                          onDragStart={(e) => {
+                            // Si la tarjeta estaba seleccionada, se mueve toda la selección.
+                            const ids = selected.has(order.id) && status === 'unassigned' ? [...selected] : [order.id];
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', ids.join(','));
+                            setDrag({ ids, from: status });
+                          }}
+                          onDragEnd={() => {
+                            if (over && over !== status && !accepts(over)) refuse(over);
+                            setDrag(null);
+                            setOver(null);
+                          }}
                         />
                       ))}
                     </ul>
@@ -216,6 +302,7 @@ export default function OrdersPage() {
       </div>
 
       <AssignBar
+        openSignal={assignSignal}
         orders={selectedRows}
         pickers={data?.pickers ?? []}
         token={token}

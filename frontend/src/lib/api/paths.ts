@@ -39,6 +39,7 @@ export const PATHS = {
     root: '/orders',
     one: (id: string) => `/orders/${id}`,
     cancel: (id: string) => `/orders/${id}/cancel`,
+    release: (id: string) => `/orders/${id}/release`,
     cancelLine: (lineId: string) => `/orders/lines/${lineId}/cancel`,
   },
   metrics: {

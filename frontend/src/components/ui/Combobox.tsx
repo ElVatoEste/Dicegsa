@@ -38,6 +38,7 @@ export function Combobox<T extends string>({
   id,
   className,
   tone = 'light',
+  openSignal,
   'aria-label': ariaLabel,
 }: {
   value: T | '';
@@ -51,6 +52,8 @@ export function Combobox<T extends string>({
   className?: string;
   /** `dark` para usarlo sobre fondos oscuros, como la barra de asignación. */
   tone?: 'light' | 'dark';
+  /** Cada cambio de este número abre el desplegable desde afuera, por ejemplo al soltar una tarjeta. */
+  openSignal?: number;
   'aria-label'?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -107,6 +110,10 @@ export function Combobox<T extends string>({
     // Solo al abrir: mientras está abierto la lista la maneja el teclado.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  useEffect(() => {
+    if (openSignal) setOpen(true);
+  }, [openSignal]);
 
   useEffect(() => {
     list.current?.children[active]?.scrollIntoView({ block: 'nearest' });

@@ -65,6 +65,13 @@ export class OrdersController {
     return this.orders.cancel(req.account.sub, id);
   }
 
+  @Post(':id/release')
+  @HttpCode(200)
+  @Roles(...DESK)
+  release(@Req() req: Req, @Param('id') id: string) {
+    return this.orders.release(req.account.sub, id);
+  }
+
   @Post('lines/:lineId/cancel')
   @HttpCode(200)
   @Roles(...DESK)

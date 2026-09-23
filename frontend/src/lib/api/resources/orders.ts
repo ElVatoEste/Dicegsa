@@ -105,6 +105,7 @@ export const ordersApi = {
   update: (token: string, id: string, patch: OrderPatch) =>
     api.patch<OrderBase>(PATHS.orders.one(id), patch, { token }),
   cancel: (token: string, id: string) => api.post<void>(PATHS.orders.cancel(id), undefined, { token }),
+  release: (token: string, id: string) => api.post<void>(PATHS.orders.release(id), undefined, { token }),
   cancelLine: (token: string, lineId: string) =>
     api.post<OrderLine>(PATHS.orders.cancelLine(lineId), undefined, { token }),
 };

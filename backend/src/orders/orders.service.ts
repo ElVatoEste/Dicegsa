@@ -20,7 +20,7 @@ import {
 import { EventsGateway } from '../events/events.gateway';
 import { ROOMS } from '../events/rooms';
 import type { OrderInput } from './dto';
-import { orderStatus } from './rules';
+import { canRelease, orderStatus, type PickListStatus } from './rules';
 
 export interface OrderPatch {
   dispatchZoneId?: string | null;
@@ -162,6 +162,45 @@ export class OrdersService {
       await audit(tx, actorId, 'cancel', 'order', id);
     });
     this.changed('order.cancelled', { id });
+  }
+
+  /**
+   * Saca un pedido de su PKL y lo devuelve a "sin asignar". Si el PKL queda sin
+   * pedidos, se cierra la asignación para que desaparezca de la vista del alistador.
+   */
+  async release(actorId: string, id: string) {
+    let assigneeId: string | null = null;
+    await this.db.transaction(async (tx) => {
+      const [order] = await tx.select().from(orders).where(eq(orders.id, id)).limit(1);
+      if (!order) throw new NotFoundException('No existe ese pedido');
+      if (!order.pickListId) throw new BadRequestException('El pedido no está asignado');
+
+      const [pickList] = await tx.select().from(pickLists).where(eq(pickLists.id, order.pickListId)).limit(1);
+      const lines = await tx.select({ status: orderLines.status }).from(orderLines).where(eq(orderLines.orderId, id));
+      if (!canRelease(pickList!.status as PickListStatus, lines.map((l) => l.status))) {
+        throw new BadRequestException('El alistador ya empezó este pedido: no se puede devolver a sin asignar');
+      }
+
+      await tx.update(orders).set({ pickListId: null }).where(eq(orders.id, id));
+      const [current] = await tx
+        .select()
+        .from(assignments)
+        .where(and(eq(assignments.pickListId, pickList!.id), isNull(assignments.endedAt)))
+        .limit(1);
+      assigneeId = current?.assigneeId ?? null;
+
+      const [remaining] = await tx
+        .select({ id: orders.id })
+        .from(orders)
+        .where(eq(orders.pickListId, pickList!.id))
+        .limit(1);
+      if (!remaining && current) {
+        await tx.update(assignments).set({ endedAt: new Date() }).where(eq(assignments.id, current.id));
+      }
+      await audit(tx, actorId, 'release', 'order', id, { pickListId: pickList!.id, number: pickList!.number });
+    });
+    this.changed('order.released', { id });
+    if (assigneeId) this.events.emitToAccount(assigneeId, 'pick_list.changed', { orderId: id });
   }
 
   /** Baja de una línea sin existencias, cuando televentas la saca del pedido. */
