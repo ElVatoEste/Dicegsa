@@ -20,3 +20,26 @@ export function readSession(): Session | null {
 export function clearSession() {
   localStorage.removeItem(KEY);
 }
+
+const REMEMBERED = 'dicegsa.account';
+
+/**
+ * Recuerda solo el nombre de cuenta, nunca la contraseña ni la sesión: en una
+ * computadora compartida, quien llega después no puede entrar como el anterior.
+ */
+export function rememberAccount(accountName: string | null) {
+  try {
+    if (accountName) localStorage.setItem(REMEMBERED, accountName);
+    else localStorage.removeItem(REMEMBERED);
+  } catch {
+    // Sin almacenamiento disponible el formulario simplemente no recuerda nada.
+  }
+}
+
+export function rememberedAccount(): string {
+  try {
+    return localStorage.getItem(REMEMBERED) ?? '';
+  } catch {
+    return '';
+  }
+}

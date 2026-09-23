@@ -35,7 +35,7 @@ const base =
 
 // El alto se elige acá y no por className: `h-9` y `h-11` pesan lo mismo, así que
 // mandarlas juntas deja que gane la del stylesheet y no la de quien la escribió.
-const HEIGHTS = { sm: 'h-9 text-sm', md: 'h-11 text-base' } as const;
+const HEIGHTS = { sm: 'h-9 text-sm', md: 'h-11 text-base', lg: 'h-13 text-base' } as const;
 
 // `size` ya existe como atributo nativo de input y select, y ahí es un número.
 // Se lo excluye para que el del kit sea el que vale.
