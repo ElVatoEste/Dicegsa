@@ -53,9 +53,13 @@ export default function LoginPage() {
         />
         <div className="relative flex h-full flex-col justify-between p-12">
           <Logo tone="dark" size="lg" />
-          <p className="cifras text-xs text-white/55">
-            © {new Date().getFullYear()} DICEGSA · Almacén CDF
-          </p>
+          <div>
+            <p className="text-4xl font-bold tracking-tight text-white">Centro de Distribución</p>
+            <p className="mt-3 text-lg text-white/75">Plataforma de operación del almacén CDF · DICEGSA</p>
+            <p className="cifras mt-10 text-xs text-white/55">
+              © {new Date().getFullYear()} DICEGSA · Almacén CDF
+            </p>
+          </div>
         </div>
       </div>
 
