@@ -66,7 +66,6 @@ export default function AuditLogPage() {
   return (
     <Shell
       title="Auditoría"
-      subtitle="Toda acción de un administrador sobre una cuenta queda acá. Es la contrapartida de que pueda reiniciar la contraseña de cualquiera."
       role={session.role}
       accountName={session.accountName}
       status={<ConnectionStatus state={connection} />}

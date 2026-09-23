@@ -15,11 +15,6 @@ export function StopCausesPanel({ token, canEdit }: { token: string; canEdit: bo
 
   return (
     <div>
-      <p className="max-w-prose text-sm text-muted">
-        El catálogo del que elige el alistador al registrar una parada. Solo las causas que no
-        dependen de él descuentan de su tiempo.
-      </p>
-
       {canEdit && (
         <form
           onSubmit={async (e) => {
@@ -35,7 +30,7 @@ export function StopCausesPanel({ token, canEdit }: { token: string; canEdit: bo
               void reload();
             }
           }}
-          className="mt-4 flex flex-wrap items-end gap-3"
+          className="flex flex-wrap items-end gap-3"
         >
           <Field label="Causa" htmlFor="causeName" className="grow basis-64">
             <Input id="causeName" value={name} onChange={(e) => setName(e.target.value)} placeholder="Espera de inventario" />
@@ -102,11 +97,6 @@ export function StopCausesPanel({ token, canEdit }: { token: string; canEdit: bo
           ))}
         </ul>
       )}
-
-      <p className="mt-4 text-xs text-muted">
-        Una causa no se edita ni se borra: cambiarle la clasificación alteraría el tiempo de turnos
-        ya cerrados. Si quedó mal cargada, se desactiva y se crea otra.
-      </p>
     </div>
   );
 }

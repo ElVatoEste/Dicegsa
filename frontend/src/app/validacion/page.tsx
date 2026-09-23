@@ -46,7 +46,6 @@ export default function ValidationPage() {
   return (
     <Shell
       title="Validación"
-      subtitle="Revisá físicamente lo que entrega el alistador: golpes, código de barras, lote y vencimiento. Después se empaca."
       role={session.role}
       accountName={session.accountName}
       status={<ConnectionStatus state={connection} />}
@@ -60,7 +59,7 @@ export default function ValidationPage() {
         <EmptyState
           icon={ClipboardCheck}
           title="Nada para validar"
-          description="Cuando un alistador entregue un PKL aparece acá, sin recargar."
+          description="Cuando un alistador entregue un PKL, aparece acá."
         />
       ) : (
         <div className="grid items-start gap-5 lg:grid-cols-[18rem_1fr]">

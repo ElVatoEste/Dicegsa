@@ -106,7 +106,6 @@ export default function OrdersPage() {
   return (
     <Shell
       title="Pedidos"
-      subtitle="Lo que llega de televentas, ordenado por fecha de entrega. Lo de pronta entrega se marca en rojo."
       role={session.role}
       accountName={session.accountName}
       status={<ConnectionStatus state={connection} />}

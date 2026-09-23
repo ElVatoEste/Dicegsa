@@ -107,7 +107,7 @@ export default function OperatorPage() {
           <EmptyState
             icon={ClipboardList}
             title="No tenés PKL asignados"
-            description="Cuando mesa de control te asigne uno aparece acá solo, sin recargar."
+            description="Cuando mesa de control te asigne uno, aparece acá."
             className="mt-10"
           />
         ) : (
@@ -478,7 +478,7 @@ function StopDrawer({
   }, [open]);
 
   return (
-    <Drawer open={open} onClose={onClose} title="¿Por qué se frenó?" subtitle="Elegí la causa. El tiempo de la parada se cuenta aparte.">
+    <Drawer open={open} onClose={onClose} title="Registrar parada" subtitle="Elegí la causa.">
       {causes.length === 0 ? (
         <p className="text-sm text-muted">
           Todavía no hay causas cargadas. Pedile al supervisor que las cargue en Configuración.

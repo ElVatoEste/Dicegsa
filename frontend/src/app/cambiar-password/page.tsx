@@ -60,8 +60,7 @@ export default function ChangePasswordPage() {
 
         <h1 className="mt-8 text-2xl font-semibold tracking-tight">Elegí tu contraseña</h1>
         <p className="mt-1 text-sm text-muted">
-          La que te entregaron sirve una sola vez. Hasta cambiarla no se puede entrar al resto del
-          sistema.
+          Por seguridad, cambiá la contraseña temporal antes de continuar.
         </p>
 
         <form onSubmit={submit} className="mt-8 space-y-5">

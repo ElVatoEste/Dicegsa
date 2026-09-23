@@ -24,7 +24,6 @@ export default function SettingsPage() {
   return (
     <Shell
       title="Configuración"
-      subtitle="Los valores de la operación viven acá y no en el código. Todo cambio queda en la auditoría."
       role={session.role}
       accountName={session.accountName}
     >

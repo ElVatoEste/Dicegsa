@@ -65,7 +65,6 @@ export default function AccountsPage() {
   return (
     <Shell
       title="Cuentas"
-      subtitle="Las cuentas las crea y reinicia un administrador. No hay auto-registro ni recuperación por correo."
       role={session.role}
       accountName={session.accountName}
       status={<ConnectionStatus state={connection} />}
@@ -263,11 +262,6 @@ export default function AccountsPage() {
           </tbody>
         </Table>
       )}
-
-      <p className="mt-4 text-xs text-muted">
-        Las cuentas se dan de baja, nunca se borran: sus eventos de alisto tienen que seguir siendo
-        trazables.
-      </p>
     </Shell>
   );
 }

@@ -77,10 +77,6 @@ export function CatalogPanel({ kind, token, canEdit }: { kind: CatalogKind; toke
           ))}
         </ul>
       )}
-      <p className="mt-4 text-xs text-muted">
-        Las entradas no se borran: se desactivan, para que los pedidos y errores que las usaron las
-        sigan mostrando.
-      </p>
     </div>
   );
 }

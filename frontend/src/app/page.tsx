@@ -31,21 +31,20 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-brand-800 p-12 lg:flex">
-        <Logo tone="dark" />
-        <div className="max-w-md">
-          <p className="text-3xl font-semibold leading-tight tracking-tight text-white">
-            El tiempo que no dependió de vos, no te lo descuenta.
-          </p>
-          <p className="mt-4 text-sm leading-relaxed text-white/60">
-            Las órdenes se siguen en el tablero y los bloqueos se registran cuando ocurren, así el
-            desempeño se mide por lo que cada quien pudo hacer.
-          </p>
-        </div>
+      <div className="relative hidden overflow-hidden bg-brand-950 lg:block">
+        <img
+          src="/login.jpg"
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+        {/* Velo de marca: el logo se lee sobre la foto sin importar qué quede detrás. */}
         <div
           aria-hidden
-          className="absolute -bottom-32 -right-24 size-96 rounded-full bg-brand-500/12 blur-3xl"
+          className="absolute inset-0 bg-linear-to-b from-brand-950/80 via-brand-950/25 to-brand-950/70"
         />
+        <div className="relative p-12">
+          <Logo tone="dark" />
+        </div>
       </div>
 
       <div className="flex items-center justify-center px-6 py-12">
@@ -55,9 +54,6 @@ export default function LoginPage() {
           </div>
 
           <h1 className="mt-8 text-2xl font-semibold tracking-tight lg:mt-0">Ingresar</h1>
-          <p className="mt-1 text-sm text-muted">
-            Usá el nombre de cuenta que te entregó el administrador.
-          </p>
 
           <form onSubmit={submit} className="mt-8 space-y-5">
             <Field label="Nombre de cuenta" htmlFor="accountName">
@@ -88,9 +84,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-8 text-sm text-muted">
-            Si olvidaste la contraseña, el administrador la reinicia y te entrega una nueva.
-          </p>
+          <p className="mt-10 text-xs text-muted">Acceso restringido al personal autorizado de DICEGSA.</p>
         </div>
       </div>
     </div>
