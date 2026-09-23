@@ -2,9 +2,18 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Check, KeyRound, Power, UserPlus, Users } from 'lucide-react';
-import { accountsApi, ApiError, type Account, type FloorRole, type SystemRole } from '@/lib/api';
+import {
+  accountsApi,
+  ApiError,
+  resetRequestsApi,
+  type Account,
+  type FloorRole,
+  type ResetRequest,
+  type SystemRole,
+} from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
 import { ConnectionStatus } from '@/components/ConnectionStatus';
+import { ResetRequestsPanel } from '@/components/ResetRequestsPanel';
 import { Shell } from '@/components/Shell';
 import { useToast } from '@/components/Toasts';
 import { Badge, Button, EmptyState, Field, Input, Select, Table, Td, Th } from '@/components/ui';
@@ -19,6 +28,7 @@ interface Handover {
 export default function AccountsPage() {
   const session = useAuthGuard(['admin']);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [requests, setRequests] = useState<ResetRequest[]>([]);
   const [handover, setHandover] = useState<Handover | null>(null);
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState<SystemRole>('operator');
@@ -30,7 +40,9 @@ export default function AccountsPage() {
   const reload = useCallback(async () => {
     if (!token) return;
     try {
-      setAccounts(await accountsApi.list(token));
+      const [list, pending] = await Promise.all([accountsApi.list(token), resetRequestsApi.list(token)]);
+      setAccounts(list);
+      setRequests(pending);
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : 'No se pudo leer el listado');
     }
@@ -90,6 +102,26 @@ export default function AccountsPage() {
           </p>
         </div>
       )}
+
+      <ResetRequestsPanel
+        requests={requests}
+        busy={busy}
+        onReset={(request) => {
+          if (!token || !request.accountId) return;
+          void run(async () => {
+            const reset = await accountsApi.resetPassword(token, request.accountId!);
+            setHandover({ accountName: reset.account.accountName, password: reset.initialPassword });
+            toast.warning(`Entregale la contraseña nueva a ${reset.account.accountName}`);
+          });
+        }}
+        onDismiss={(request) => {
+          if (!token) return;
+          void run(async () => {
+            await resetRequestsApi.dismiss(token, request.id);
+            toast.success(`Solicitud de ${request.accountName} descartada`);
+          });
+        }}
+      />
 
       <form
         onSubmit={(e) => {
@@ -170,7 +202,7 @@ export default function AccountsPage() {
                     value={account.role}
                     size="sm"
                     disabled={busy}
-                    className="w-44"
+                    className="w-48"
                     onChange={(e) => {
                       if (!token) return;
                       const role = e.target.value as SystemRole;

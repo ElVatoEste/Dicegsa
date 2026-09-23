@@ -68,6 +68,7 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 | REQ-043 | Registro de auditoría general: toda acción de usuario con autor y fecha, consultable por usuario y por orden. | Alta | En construcción | D-028 |
 | REQ-044 | Historial por operario: qué órdenes tuvo, cuánto tardó y qué paradas registró. | Alta | Propuesto | D-028 |
 | REQ-045 | Configuración editable de estándares de rendimiento, ponderación por complejidad, tipos de error y alcance de la auditoría de calidad. | Alta | Propuesto | D-028 |
+| REQ-050 | Solicitud de cambio de contraseña desde el ingreso, que le llega al administrador y queda registrada con su resolución. | Media | Hecho | D-041 |
 | REQ-032 | Límite de intentos fallidos de ingreso por cuenta. | Alta | Propuesto | D-023 |
 
 ## Validación (OE-4)

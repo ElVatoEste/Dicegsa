@@ -51,6 +51,9 @@ del PKL contra el API en marcha y deja cuentas `smoke_*` en la base.
 | `POST` | `/accounts/:id/deactivate` | admin |
 | `POST` | `/accounts/:id/reactivate` | admin |
 | `GET` | `/accounts/audit-log` | admin |
+| `POST` | `/password-reset-requests` | público |
+| `GET` | `/password-reset-requests` | admin |
+| `POST` | `/password-reset-requests/:id/dismiss` | admin |
 | `GET` | `/stop-causes` | cuenta autenticada |
 | `POST` | `/stop-causes` | supervisor, admin |
 | `POST` | `/stop-causes/:id/deactivate` | supervisor, admin |

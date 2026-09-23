@@ -5,11 +5,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import type { SystemRole } from '../auth/access';
 import { generateInitialPassword, hashPassword, normalizeAccountName } from '../auth/passwords';
 import { DB, type Db, type Tx } from '../db/db.module';
-import { accounts, adminEvents, floorRole, workers } from '../db/schema';
+import { accounts, adminEvents, floorRole, passwordResetRequests, workers } from '../db/schema';
 import { EventsGateway } from '../events/events.gateway';
 import { ROOMS } from '../events/rooms';
 
@@ -102,6 +102,16 @@ export class AccountsService {
         action: 'reset_password',
         details: null,
       });
+      // Las solicitudes abiertas de esa cuenta quedan atendidas por este reinicio.
+      await tx
+        .update(passwordResetRequests)
+        .set({ status: 'resolved', resolvedBy: actorId, resolvedAt: new Date() })
+        .where(
+          and(
+            eq(sql`lower(${passwordResetRequests.accountName})`, updated!.accountName.toLowerCase()),
+            eq(passwordResetRequests.status, 'pending'),
+          ),
+        );
       return updated!;
     });
 

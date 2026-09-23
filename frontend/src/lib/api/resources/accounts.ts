@@ -39,6 +39,29 @@ export interface WithHandover {
   initialPassword: string;
 }
 
+export interface ResetRequest {
+  id: string;
+  accountName: string;
+  /** Null cuando el nombre tipeado no corresponde a ninguna cuenta. */
+  accountId: string | null;
+  note: string | null;
+  status: 'pending' | 'resolved' | 'dismissed';
+  createdAt: string;
+  resolvedBy: string | null;
+  resolvedAt: string | null;
+}
+
+export const resetRequestsApi = {
+  /** Público: responde igual exista o no la cuenta. */
+  send: (accountName: string, note?: string) =>
+    api.post<{ received: true }>(PATHS.resetRequests.root, { accountName, note }),
+
+  list: (token: string) => api.get<ResetRequest[]>(PATHS.resetRequests.root, { token }),
+
+  dismiss: (token: string, id: string) =>
+    api.post<void>(PATHS.resetRequests.dismiss(id), undefined, { token }),
+};
+
 export const accountsApi = {
   list: (token: string) => api.get<Account[]>(PATHS.accounts.root, { token }),
 

@@ -17,6 +17,10 @@ export const PATHS = {
     reactivate: (id: string) => `/accounts/${id}/reactivate`,
     worker: (id: string) => `/accounts/${id}/worker`,
   },
+  resetRequests: {
+    root: '/password-reset-requests',
+    dismiss: (id: string) => `/password-reset-requests/${id}/dismiss`,
+  },
   stopCauses: {
     root: '/stop-causes',
     deactivate: (id: string) => `/stop-causes/${id}/deactivate`,

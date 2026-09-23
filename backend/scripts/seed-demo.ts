@@ -24,6 +24,7 @@ async function account(accountName: string, role: any, fullName?: string) {
 
 const desk = await account('demo_mesa', 'control_desk');
 await account('demo_supervisor', 'supervisor');
+await account('demo_admin', 'admin');
 await account('demo_validador', 'validator', 'Karla Méndez');
 for (const [name, full] of [
   ['demo_alistador', 'Jean Carlos Palacios'],

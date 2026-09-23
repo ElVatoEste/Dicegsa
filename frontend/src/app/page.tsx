@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, LockKeyhole, ShieldCheck, UserRound } from 'lucide-react';
 import { ApiError, authApi } from '@/lib/api';
 import { Logo } from '@/components/Logo';
+import { ResetRequestDrawer } from '@/components/ResetRequestDrawer';
 import { useToast } from '@/components/Toasts';
 import { Button, Checkbox, IconInput, PasswordInput } from '@/components/ui';
 import { homeFor } from '@/lib/nav';
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
   const toast = useToast();
   const router = useRouter();
 
@@ -94,7 +96,7 @@ export default function LoginPage() {
                 </label>
                 <button
                   type="button"
-                  onClick={() => toast.info('Pedile al administrador que te la reinicie.')}
+                  onClick={() => setResetOpen(true)}
                   className="text-sm font-medium text-brand-700 underline-offset-4 transition-colors hover:text-brand-900 hover:underline"
                 >
                   ¿Olvidaste tu contraseña?
@@ -141,6 +143,8 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      <ResetRequestDrawer open={resetOpen} onClose={() => setResetOpen(false)} initialAccount={accountName} />
     </div>
   );
 }

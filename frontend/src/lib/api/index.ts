@@ -2,7 +2,9 @@ export { api, ApiError, API_URL, PATHS } from './client';
 export { authApi, type Session, type SystemRole } from './resources/auth';
 export {
   accountsApi,
+  resetRequestsApi,
   type Account,
+  type ResetRequest,
   type AdminAction,
   type AdminEvent,
   type FloorRole,
