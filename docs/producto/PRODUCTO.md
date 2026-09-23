@@ -40,7 +40,7 @@ En la segunda ronda agrega dos cosas que la propuesta no contemplaba:
 
 También señala que la meta se cumple agregada aunque haya gente por debajo del estándar, lo que justifica medir por colaborador; y pide operar sin papel.
 
-Y confirma el cliente objetivo: el alistador trabaja con **handheld**, que es además la fuente de los eventos. Su preocupación por "la gente que ande sin handheld" señala el hueco: quien trabaja sin equipo no genera eventos y queda fuera del cálculo.
+Menciona el **handheld** como equipo del alistador y fuente de los eventos. Esa opción quedó descartada ([D-020](../decisiones/POR-ACLARAR.md)): el operario usa la misma web desde el móvil. Su preocupación por "la gente que ande sin handheld" sigue valiendo para el móvil: quien trabaja sin equipo no genera eventos y queda fuera del cálculo.
 
 ## Para quién
 | Usuario | Qué obtiene |
@@ -62,7 +62,7 @@ Términos de la operación, tal como los usa el personal. Los que están marcado
 | **Valeador** ◆ | Rol distinto del alistador, mejor pago. Un error suyo pesa más. Falta precisar qué hace — [P-015](../decisiones/POR-ACLARAR.md). |
 | **PKL** ◆ | El código con que se identifica una orden de alisto en el piso. Una orden "cae", acumula tiempo y tiene su ventana. Supuesto de trabajo — [P-017](../decisiones/POR-ACLARAR.md). |
 | **Línea** | Un ítem dentro de la orden: SKU, lote y cantidad. La unidad que se cuenta: 15 líneas/hora es el estándar. |
-| **Handheld** ◆ | El equipo con que trabaja el alistador en el piso. Cliente de la plataforma y fuente de los eventos. |
+| **Handheld** ◆ | El equipo que el entrevistado asocia al alistador. Fuera del alcance: el operario usa la web desde el móvil — [D-020](../decisiones/POR-ACLARAR.md). |
 | **Mesa de control** ◆ | Estación desde donde se consulta el estado de los pedidos. Falta precisar — [P-014](../decisiones/POR-ACLARAR.md). |
 | **Ventana de entrega** ◆ | Compromiso con el cliente. Va de 24 horas a 10-15 minutos según el cliente. |
 | **OLE** | Overall Labor Effectiveness. El indicador que introduce el proyecto. |
@@ -92,7 +92,7 @@ OLE = Disponibilidad Neta (D) × Desempeño Estándar (P) × Calidad Operativa (
 1. **No invasivo.** Cero escrituras al ERP corporativo. La plataforma es un sistema paralelo de medición.
 2. **La parada se registra cuando ocurre, no se reconstruye después.** Un bloqueo no capturado en vivo es tiempo perdido que el modelo no puede devolverle al operario.
 3. **Equidad auditable.** Toda cifra de OLE debe poder desarmarse hasta los eventos que la produjeron.
-4. **Baja carga cognitiva.** Handheld, de pie, una mano ocupada, prisa: pocos toques, objetivos grandes, sin texto libre donde alcance un botón.
+4. **Baja carga cognitiva.** Móvil, de pie, una mano ocupada, prisa: pocos toques, objetivos grandes, sin texto libre donde alcance un botón.
 5. **Costo marginal.** Open source, sin licenciamiento privativo, sobre la infraestructura ya instalada.
 
 ## Ejes del proyecto

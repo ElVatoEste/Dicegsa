@@ -63,8 +63,8 @@ Plataforma web reactiva, desacoplada y de alta concurrencia.
 - **Tiempo real:** WebSockets vía gateway de Nest sobre Fastify, para emisión de eventos instantáneos (tablero Kanban, cronometraje con latencia de ms).
 - **Caché y fan-out:** Redis, **si aplica** — ver [D-006](../decisiones/POR-ACLARAR.md). Con una sola instancia de backend los eventos se reparten en proceso; Redis entra cuando haya más de una instancia o caché que lo justifique.
 - **Auth:** nombre de cuenta + contraseña, JWT, guards por rol. Cuentas entregadas y recuperadas por administrador — ver abajo.
-- **Frontend:** Next.js + TypeScript en modo **SPA** (`output: 'export'`, client-side rendering). Build estático servido por nginx. El cliente del operario es el **handheld** de bodega: pantalla chica, uso de pie, una mano ocupada. Interfaces táctiles y de baja carga cognitiva. Iconos `lucide-react`, estilos TailwindCSS.
-- **Infra:** VPS Linux de bajo consumo, acceso desde el navegador del handheld en red local institucional. nginx sirve el estático del frontend y hace reverse proxy al API. Stack open source, sin licenciamiento privativo.
+- **Frontend:** Next.js + TypeScript en modo **SPA** (`output: 'export'`, client-side rendering). Build estático servido por nginx. El operario usa **la misma web desde el navegador del móvil**, con diseño responsive: pantalla chica, uso de pie, una mano ocupada. Sin handheld ni app nativa — ver [D-020](../decisiones/POR-ACLARAR.md). Interfaces táctiles y de baja carga cognitiva. Iconos `lucide-react`, estilos TailwindCSS.
+- **Infra:** VPS Linux de bajo consumo, acceso desde el navegador (escritorio o móvil) en red local institucional. nginx sirve el estático del frontend y hace reverse proxy al API. Stack open source, sin licenciamiento privativo.
 
 ### Autenticación y ciclo de vida de cuentas ([D-005](../decisiones/POR-ACLARAR.md))
 El operario de bodega no tiene correo corporativo. El correo no sirve ni como identificador ni como canal de recuperación, así que el modelo es cerrado y administrado:
@@ -72,7 +72,7 @@ El operario de bodega no tiene correo corporativo. El correo no sirve ni como id
 - **Identificador:** nombre de cuenta, no correo. Único, sin distinción de mayúsculas.
 - **Alta:** no hay auto-registro. El administrador crea la cuenta y entrega la credencial inicial.
 - **Primer ingreso:** la contraseña entregada es de un solo uso — el sistema obliga a cambiarla antes de dar acceso a nada más.
-- **Contraseña inicial:** la genera el sistema, aleatoria. Largo mínimo 8, sin reglas de composición: una política de escritorio en un handheld termina en un papel pegado al equipo.
+- **Contraseña inicial:** la genera el sistema, aleatoria. Largo mínimo 8, sin reglas de composición: una política de escritorio en un teléfono termina en un papel pegado al equipo.
 - **Recuperación:** no hay "olvidé mi contraseña" por correo, porque no hay correo. El administrador resetea y vuelve a entregar, y el ciclo de primer ingreso se repite.
 - **Rastro:** toda alta, reseteo, cambio de rol y baja queda registrada con quién la hizo y cuándo. Si el admin puede tomar la identidad de cualquiera, el registro es lo único que lo hace auditable.
 - **Baja:** las cuentas se desactivan, no se borran — sus eventos de alisto y sus cálculos de OLE tienen que seguir siendo trazables.
@@ -87,8 +87,8 @@ App detrás de login (sin SEO), con datos en tiempo real por WebSocket. SSR no a
 
 ## Invariantes críticas
 1. **Cero escrituras al ERP.** La plataforma lee órdenes y nunca toca la base transaccional corporativa (S-3.2).
-2. **El handheld bloquea y reintenta ante corte de red.** Sin cola local: una cola local vuelve a meter el reloj del equipo en el cronometraje.
-3. **El tiempo lo pone el servidor.** Las marcas de tiempo nunca vienen del reloj del handheld: relojes desajustados en bodega falsean el cronometraje.
+2. **La interfaz de operario bloquea y reintenta ante corte de red.** Sin cola local: una cola local vuelve a meter el reloj del equipo en el cronometraje.
+3. **El tiempo lo pone el servidor.** Las marcas de tiempo nunca vienen del reloj del móvil: relojes desajustados en bodega falsean el cronometraje.
 4. **Toda parada tiene causa del catálogo.** No existe parada sin tipificar; sin causa no se puede decidir si descuenta.
 5. **Solo las paradas no imputables descuentan de la Disponibilidad.** Es la invariante que sostiene toda la tesis de equidad.
 6. **`OLE` es derivable.** Recalcular desde los eventos debe reproducir el valor almacenado; si no, el desglose auditable (REQ-013) es mentira.

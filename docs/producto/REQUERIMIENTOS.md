@@ -44,9 +44,9 @@ Estados: `Propuesto` · `Aceptado` · `En construcción` · `Hecho`.
 | REQ-018 | Autenticación por **nombre de cuenta y contraseña** (sin correo) y control de acceso por roles: operario, supervisor, gerencia, admin. | Alta | Hecho | D-005 |
 | REQ-019 | Cero escrituras sobre la base de datos del ERP corporativo. | Alta | Propuesto | — |
 | REQ-020 | Ingesta de órdenes desde el ERP. | Alta | Propuesto | P-006 |
-| REQ-021 | Operación en red local institucional vía navegador del handheld, sobre el parque de equipos ya instalado. | Alta | Propuesto | D-002, P-019 |
-| REQ-022 | Interfaz de operario diseñada para **handheld**: pantalla chica, uso de pie, una mano ocupada, objetivos táctiles grandes. | Alta | Propuesto | D-009, P-019 |
-| REQ-039 | Visibilidad de los alistadores activos sin handheld asignado, cuyo trabajo no genera eventos y queda fuera del cálculo. | Media | Propuesto | P-020 |
+| REQ-021 | Operación en red local institucional vía navegador, desde escritorio o móvil. | Alta | Propuesto | D-002, D-020, P-021 |
+| REQ-022 | Interfaz de operario **responsive para móvil**, en la misma web: pantalla chica, uso de pie, una mano ocupada, objetivos táctiles grandes. | Alta | Propuesto | D-020 |
+| REQ-039 | Visibilidad de los alistadores activos sin móvil con sesión abierta, cuyo trabajo no genera eventos y queda fuera del cálculo. | Media | Propuesto | P-020 |
 | REQ-023 | Tolerancia a corte de red en la terminal sin perder el evento en curso. | Media | Propuesto | P-007 |
 
 ## Cuentas y administración (D-005)

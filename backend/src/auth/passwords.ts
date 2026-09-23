@@ -1,6 +1,6 @@
 /**
  * Alfabeto sin caracteres que se confunden al leerlos de un papel y teclearlos
- * en un handheld: se excluyen O, 0, I, l y 1.
+ * en un teléfono: se excluyen O, 0, I, l y 1.
  */
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
 
@@ -26,7 +26,7 @@ export function verifyPassword(password: string, hash: string): Promise<boolean>
 /**
  * Largo mínimo y nada más. Exigir mayúscula, número y símbolo en un equipo que
  * se opera de pie y con una mano ocupada termina en contraseñas anotadas en un
- * papel pegado al handheld.
+ * papel pegado al teléfono.
  */
 export function isPasswordAcceptable(password: string): boolean {
   return password.length >= MIN_LENGTH;

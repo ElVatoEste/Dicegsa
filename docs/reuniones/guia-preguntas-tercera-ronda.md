@@ -1,4 +1,4 @@
-dale ---
+---
 titulo: "Guía de preguntas — tercera ronda"
 proyecto: "Dicegsa — OLE y Kanban en CDF"
 area: "Reuniones"
@@ -26,16 +26,16 @@ los tiene ([P-012](../decisiones/POR-ACLARAR.md)).
 
 Lo más urgente y lo más barato. Sin esto no se puede escribir la primera línea de código.
 
-1. ¿Qué marca y modelo son los handhelds que usan los alistadores?
-2. ¿Qué navegador tienen y qué versión? *(Pedir que abran el navegador en un equipo y lean
-   la versión ahí mismo.)* — [P-019](../decisiones/POR-ACLARAR.md)
+1. ¿Los alistadores usarían un teléfono de la empresa o el propio?
+   — [P-021](../decisiones/POR-ACLARAR.md)
+2. ¿La wifi institucional admite esos teléfonos, o hay que registrarlos?
 3. ¿La wifi cubre toda la bodega o hay zonas donde el equipo se queda sin señal?
    *(Si hay zonas muertas, se reevalúa [D-012](../decisiones/POR-ACLARAR.md).)*
 4. ¿Cómo podríamos leer las órdenes del ERP: hay API, una vista de solo lectura, una
    exportación programada, una réplica de base? — [P-006](../decisiones/POR-ACLARAR.md)
 5. ¿Con qué frecuencia caen las órdenes al piso: de a una, por tandas, en horarios fijos?
-6. ¿El handheld reporta la ubicación del operario, o la posición se deduce de la lectura del
-   rack? — [P-020](../decisiones/POR-ACLARAR.md)
+6. ¿Hace falta saber dónde está el operario, o alcanza con el estado de la orden que marca?
+   — [P-020](../decisiones/POR-ACLARAR.md)
 
 ## Bloque B · Supervisión y jefatura de CDF
 
@@ -84,12 +84,13 @@ respuestas no hay motor OLE. — [P-001](../decisiones/POR-ACLARAR.md)
 26. ¿Cómo se asignan los pedidos hoy y cómo se reparte la carga entre el equipo?
     *(Se preguntó en la segunda ronda pero la respuesta no se recuperó del audio.)*
 
-### B.6 El handheld en el piso
+### B.6 El móvil en el piso
 
-27. ¿El handheld es de cada persona durante el turno, o rota entre operarios?
+27. ¿El teléfono sería de cada persona durante el turno, o rotaría entre operarios?
     — [P-010](../decisiones/POR-ACLARAR.md)
-28. ¿Cuántos handhelds hay y cuántos alistadores por turno?
-29. Mencionaste "la gente que ande sin handheld": ¿pasa seguido, y por qué?
+28. ¿Cuántos alistadores hay por turno?
+29. Mencionaste "la gente que ande sin handheld": ¿pasa seguido, y por qué? ¿Pasaría lo
+    mismo con el teléfono?
 
 ## Bloque C · Alistadores
 
@@ -101,7 +102,7 @@ quien evalúa, no a quien es evaluado. Son quienes conocen las paradas de primer
 32. ¿Qué es lo que más tiempo te hace perder en el día?
 33. Si pudieras avisar en el momento que estás trabado, ¿lo usarías? ¿Cómo te gustaría
     avisar?
-34. ¿Cómo te llevás con el handheld? ¿Qué te molesta de usarlo?
+34. ¿Usarías el teléfono para marcar el avance mientras alistás? ¿Qué te molestaría?
 35. Si el sistema descontara los tiempos que no dependen de vos, ¿te parecería más justo que
     lo de ahora?
 
@@ -116,7 +117,7 @@ quien evalúa, no a quien es evaluado. Son quienes conocen las paradas de primer
 
 | Bloque | Cierra | Habilita |
 |---|---|---|
-| A | P-006, P-019, P-020 | Arrancar el MVP |
+| A | P-006, P-020, P-021 | Arrancar el MVP |
 | B.1 | P-001 | El factor Disponibilidad |
 | B.2 | P-002, P-003, P-017 | El factor Desempeño y el modelo de datos |
 | B.3 | P-018 | Alertas de vencimiento (REQ-035 a REQ-037) |
@@ -134,4 +135,5 @@ Ya está decidido de este lado; no se lleva a la reunión:
 |---|---|
 | [D-010](../decisiones/POR-ACLARAR.md) | Contraseñas: el sistema genera una aleatoria de un solo uso, cambio obligatorio al primer ingreso, largo mínimo 8 y sin reglas de composición. |
 | [D-011](../decisiones/POR-ACLARAR.md) | El rol `admin` existe; quién lo ocupa lo define DICEGSA al desplegar. El OLE del MVP mide alistadores; el valeador se modela pero queda fuera del cálculo inicial. |
-| [D-012](../decisiones/POR-ACLARAR.md) | Corte de red: el handheld bloquea y reintenta, sin cola local. Solo se reevalúa si la pregunta 3 revela zonas sin cobertura. |
+| [D-020](../decisiones/POR-ACLARAR.md) | Sin handheld: el operario usa la misma web desde el móvil, con diseño responsive. |
+| [D-012](../decisiones/POR-ACLARAR.md) | Corte de red: la interfaz de operario bloquea y reintenta, sin cola local. Solo se reevalúa si la pregunta 3 revela zonas sin cobertura. |
