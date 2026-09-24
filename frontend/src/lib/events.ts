@@ -32,7 +32,10 @@ export function useRealtime(token: string | undefined, onEvent: (event: Realtime
   useEffect(() => {
     if (!token) return;
 
-    const socket: Socket = io(API_URL, {
+    // Al origen y no a API_URL: detrás del proxy el API vive en /api, y socket.io
+    // tomaría ese /api como un espacio de nombres que el servidor no tiene.
+    const socket: Socket = io(new URL(API_URL).origin, {
+      path: '/socket.io',
       auth: { token },
       transports: ['websocket'],
       reconnectionDelay: 1000,
