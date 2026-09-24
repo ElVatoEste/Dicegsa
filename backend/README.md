@@ -36,7 +36,7 @@ ciclo completo del PKL: asignación, alisto línea por línea, paradas, entrega,
 y devolución por errores. Falta el cálculo de OLE.
 
 El esquema está separado por tabla en `src/db/schema/`. `bun run smoke` recorre el ciclo
-del PKL contra el API en marcha y deja cuentas `smoke_*` en la base.
+del PKL contra el API en marcha y al terminar borra las cuentas `smoke_*` y los datos que creó.
 
 | Método | Ruta | Quién |
 |---|---|---|
