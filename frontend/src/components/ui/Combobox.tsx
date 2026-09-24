@@ -156,7 +156,7 @@ export function Combobox<T extends string>({
         type="button"
         role="combobox"
         aria-expanded={open}
-        aria-controls={listId}
+        aria-controls={open ? listId : undefined}
         aria-haspopup="listbox"
         aria-label={ariaLabel}
         disabled={disabled}

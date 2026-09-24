@@ -163,16 +163,17 @@ function Factor({ label, value, dark }: { label: string; value: number | null; d
     <div>
       <p className={cn('text-xs', dark ? 'text-white/60' : 'text-muted')}>{label}</p>
       <p className="cifras mt-1 text-xl font-semibold">{pct(value)}</p>
-      <Meter value={value ?? 0} dark={dark} className="mt-2" />
+      <Meter value={value ?? 0} label={label} dark={dark} className="mt-2" />
     </div>
   );
 }
 
 /** Medidor de 0 a 1 en un solo tono: una magnitud, no una categoría ni un estado. */
-function Meter({ value, dark, className }: { value: number; dark?: boolean; className?: string }) {
+function Meter({ value, label, dark, className }: { value: number; label: string; dark?: boolean; className?: string }) {
   return (
     <div
       role="meter"
+      aria-label={label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(value * 100)}
@@ -236,7 +237,7 @@ function WorkersTable({ workers, onOpen }: { workers: WorkerRow[]; onOpen: (id: 
                 <td className="px-5">
                   <span className="flex items-center gap-3">
                     <span className="cifras w-10 font-semibold">{pct(m.ole)}</span>
-                    <Meter value={m.ole} className="flex-1" />
+                    <Meter value={m.ole} label={`OLE de ${w.name}`} className="flex-1" />
                   </span>
                 </td>
                 <td className="cifras px-5 text-right">

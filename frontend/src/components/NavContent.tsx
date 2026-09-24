@@ -37,7 +37,7 @@ export function NavContent({
       <nav className="scroll-tenue flex-1 overflow-y-auto px-3 py-2">
         {navGroupsFor(role).map(({ title, items }) => (
           <div key={title} className="mb-5">
-            <p className="px-3 pb-2 text-xs font-medium text-white/40">{title}</p>
+            <p className="px-3 pb-2 text-xs font-medium text-white/60">{title}</p>
             <div className="space-y-0.5">
               {items.map(({ href, label, icon: Icon }) => {
                 const active = isActiveRoute(path, href);

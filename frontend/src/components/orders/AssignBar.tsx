@@ -39,8 +39,8 @@ export function AssignBar({
   return createPortal(
     <div
       className={cn(
-        'fixed inset-x-0 bottom-0 z-40 flex justify-center p-4 transition-[translate,opacity] duration-300 ease-[var(--ease-out)] md:pl-60',
-        open ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0',
+        'fixed inset-x-0 bottom-0 z-40 flex justify-center p-4 transition-[translate,opacity,visibility] duration-300 ease-[var(--ease-out)] md:pl-60',
+        open ? 'visible translate-y-0 opacity-100' : 'pointer-events-none invisible translate-y-full opacity-0',
       )}
       aria-hidden={!open}
     >

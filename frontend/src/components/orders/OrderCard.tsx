@@ -46,11 +46,7 @@ export function OrderCard({
 
   return (
     <li
-      onClick={onOpen}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onOpen())}
-      tabIndex={0}
-      role="button"
-      aria-label={`Abrir pedido ${order.externalId}`}
+      data-order={order.externalId}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
@@ -59,10 +55,20 @@ export function OrderCard({
         'transition-[border-color,box-shadow,translate,opacity,scale] duration-150 hover:-translate-y-px hover:shadow-md hover:shadow-brand-900/8',
         draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
         dragging && 'scale-[0.98] opacity-40',
-        'focus-visible:ring-4 focus-visible:ring-brand-500/20',
+        'has-[button:focus-visible]:ring-4 has-[button:focus-visible]:ring-brand-500/20',
         selected ? 'border-brand-400 ring-2 ring-brand-300/60' : hot ? 'border-danger/30' : 'border-line hover:border-brand-200',
       )}
     >
+      {/*
+        Abrir ocupa toda la tarjeta, pero como botón hermano y no contenedor: un botón
+        no puede tener otro adentro, y la casilla de selección tiene que ser su propio control.
+      */}
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Abrir pedido ${order.externalId} de ${order.clientName}`}
+        className="absolute inset-0 z-0 outline-none"
+      />
       {/* Franja de urgencia: se ve sin leer la tarjeta. */}
       <span
         aria-hidden
@@ -71,7 +77,7 @@ export function OrderCard({
 
       <div className="flex items-start gap-2.5">
         {selectable && (
-          <span className="pt-0.5">
+          <span className="relative z-10 pt-0.5">
             <Checkbox label={`Seleccionar pedido ${order.externalId}`} checked={selected} onChange={onSelect} />
           </span>
         )}

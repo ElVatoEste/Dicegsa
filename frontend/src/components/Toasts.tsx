@@ -60,7 +60,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         Fijo sobre el contenido y sin ocupar espacio del flujo: un error que aparece
         no puede empujar la pantalla ni mover el botón que alguien está por tocar.
       */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center gap-2 p-4 sm:items-end sm:p-6">
+      {/*
+        La región existe siempre: un lector de pantalla solo anuncia los cambios de una
+        región viva que ya estaba en la página, no una que aparece junto con el aviso.
+      */}
+      <div
+        role="region"
+        aria-label="Avisos"
+        aria-live="polite"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center gap-2 p-4 sm:items-end sm:p-6"
+      >
         {toasts.map((toast) => (
           <ToastCard key={toast.id} toast={toast} onDismiss={() => dismiss(toast.id)} />
         ))}
@@ -80,8 +89,7 @@ function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
   return (
     <div
       // Un error interrumpe al lector de pantalla; una confirmación espera su turno.
-      role={toast.tone === 'error' ? 'alert' : 'status'}
-      aria-live={toast.tone === 'error' ? 'assertive' : 'polite'}
+      role={toast.tone === 'error' ? 'alert' : undefined}
       className={cn(
         'entra pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border px-4 py-3 shadow-lg shadow-brand-900/10',
         className,

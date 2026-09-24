@@ -54,7 +54,7 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+    <main className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
         <Logo size="lg" />
 
@@ -118,6 +118,6 @@ export default function ChangePasswordPage() {
           Cerrar sesión
         </button>
       </div>
-    </div>
+    </main>
   );
 }

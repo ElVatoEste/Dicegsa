@@ -40,6 +40,12 @@ export function Shell({
 
   return (
     <div className="flex min-h-screen">
+      <a
+        href="#contenido"
+        className="fixed left-3 top-3 z-[80] -translate-y-20 rounded-lg bg-brand-950 px-4 py-2.5 text-sm font-medium text-white transition-[translate] duration-150 focus:translate-y-0"
+      >
+        Saltar al contenido
+      </a>
       <Sidebar role={role} accountName={accountName} path={path} connection={connection} />
       <MobileNav
         open={open}
@@ -52,7 +58,7 @@ export function Shell({
 
       <div className="min-w-0 flex-1">
         <Topbar onOpen={() => setOpen(true)} />
-        <main className={cn('entra mx-auto px-5 py-8 md:px-10 md:py-10', wide ? 'max-w-[112rem]' : 'max-w-6xl')}>
+        <main id="contenido" tabIndex={-1} className={cn('entra mx-auto outline-none px-5 py-8 md:px-10 md:py-10', wide ? 'max-w-[112rem]' : 'max-w-6xl')}>
           <PageHeader title={title} subtitle={subtitle} actions={actions} />
           <div className="mt-8">{children}</div>
         </main>

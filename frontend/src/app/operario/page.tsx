@@ -76,7 +76,7 @@ export default function OperatorPage() {
       <header className="flex items-center gap-4 bg-brand-950 px-5 py-3 text-white md:px-8">
         <Logo tone="dark" />
         <span className="ml-auto hidden sm:block">
-          <ConnectionStatus state={connection} />
+          <ConnectionStatus state={connection} tone="dark" />
         </span>
         {/* Computadora compartida: quién está marcando tiene que verse siempre. */}
         <div className="flex items-center gap-3 rounded-xl bg-white/8 py-1.5 pl-3 pr-1.5">
@@ -180,7 +180,7 @@ function PickListCard({
       <p className="mt-0.5 truncate text-sm text-muted">
         {pickList.orders.map((o) => o.clientName).join(', ')}
       </p>
-      <Progress value={lines.length ? done / lines.length : 0} className="mt-3" tone={done === lines.length ? 'success' : 'brand'} />
+      <Progress label={`Avance del PKL ${pickList.number}`} value={lines.length ? done / lines.length : 0} className="mt-3" tone={done === lines.length ? 'success' : 'brand'} />
       <div className="mt-2 flex items-center justify-between text-xs">
         <span className="cifras text-muted">
           {done}/{lines.length} líneas
@@ -267,7 +267,7 @@ function PickListWork({
           )}
         </div>
         <div className="mt-4 flex items-center gap-4">
-          <Progress value={live.length ? picked / live.length : 0} className="h-3 flex-1" tone={canDeliver ? 'success' : 'brand'} />
+          <Progress label="Líneas alistadas" value={live.length ? picked / live.length : 0} className="h-3 flex-1" tone={canDeliver ? 'success' : 'brand'} />
           <span className="cifras text-sm font-semibold">
             {picked}/{live.length}
           </span>
@@ -279,7 +279,7 @@ function PickListWork({
           <PauseCircle size={22} className="text-warning" aria-hidden />
           <div className="mr-auto">
             <p className="font-semibold text-warning">En parada: {pickList.openStop.causeName}</p>
-            <p className="cifras text-sm text-warning/80">
+            <p className="cifras text-sm text-warning">
               {formatElapsed(now - new Date(pickList.openStop.startedAt).getTime())}
             </p>
           </div>

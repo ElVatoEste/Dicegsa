@@ -1,11 +1,23 @@
 import { cn } from '@/lib/cn';
 
 /** Avance de 0 a 1. Se anima con escala y no con ancho, para no recalcular el diseño. */
-export function Progress({ value, className, tone = 'brand' }: { value: number; className?: string; tone?: 'brand' | 'success' }) {
+export function Progress({
+  value,
+  label,
+  className,
+  tone = 'brand',
+}: {
+  value: number;
+  /** Qué avanza: lo lee un lector de pantalla. */
+  label: string;
+  className?: string;
+  tone?: 'brand' | 'success';
+}) {
   const clamped = Math.min(1, Math.max(0, value));
   return (
     <div
       role="progressbar"
+      aria-label={label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(clamped * 100)}

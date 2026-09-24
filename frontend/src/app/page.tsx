@@ -44,7 +44,7 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <div className="relative hidden overflow-hidden bg-brand-950 lg:block">
+      <aside aria-label="Dicegsa, Almacén CDF" className="relative hidden overflow-hidden bg-brand-950 lg:block">
         <img src="/login.jpg" alt="" className="absolute inset-0 size-full object-cover" />
         {/* Velo de marca: el logo se lee sobre la foto sin importar qué quede detrás. */}
         <div
@@ -61,9 +61,9 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-      </div>
+      </aside>
 
-      <div className="flex items-center justify-center bg-surface px-6 py-12">
+      <main className="flex items-center justify-center bg-surface px-6 py-12">
         <div className="entra w-full max-w-md">
           <div className="mb-10 lg:hidden">
             <Logo size="lg" />
@@ -146,7 +146,7 @@ export default function LoginPage() {
             Acceso restringido al personal autorizado de DICEGSA.
           </p>
         </div>
-      </div>
+      </main>
 
       <ResetRequestDrawer open={resetOpen} onClose={() => setResetOpen(false)} initialAccount={accountName} />
     </div>

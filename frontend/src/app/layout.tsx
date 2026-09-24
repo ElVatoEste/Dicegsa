@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Barlow, IBM_Plex_Mono } from 'next/font/google';
 import { ToastProvider } from '@/components/Toasts';
 import './globals.css';
@@ -19,8 +19,16 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'CDF — Evaluación operativa',
-  description: 'Plataforma OLE y Kanban para el almacén CDF (DICEGSA)',
+  title: { default: 'Dicegsa · Almacén CDF', template: '%s · Dicegsa' },
+  description: 'Plataforma de operación del almacén CDF de DICEGSA.',
+  applicationName: 'Dicegsa',
+  // Plataforma privada: no tiene nada que un buscador deba indexar.
+  robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#08243a',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

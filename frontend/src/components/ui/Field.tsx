@@ -1,3 +1,4 @@
+import { cloneElement, isValidElement } from 'react';
 import { cn } from '@/lib/cn';
 
 export function Field({
@@ -15,14 +16,22 @@ export function Field({
   children: React.ReactNode;
   className?: string;
 }) {
+  // La ayuda o el error se leen junto con el campo: un lector de pantalla los
+  // anuncia al entrar, no solo quien los ve debajo.
+  const noteId = htmlFor && (error || hint) ? `${htmlFor}-nota` : undefined;
+  const control =
+    noteId && isValidElement<{ 'aria-describedby'?: string; 'aria-invalid'?: boolean }>(children)
+      ? cloneElement(children, { 'aria-describedby': noteId, 'aria-invalid': error ? true : undefined })
+      : children;
+
   return (
     <div className={cn('block', className)}>
       <label htmlFor={htmlFor} className="text-sm font-medium text-ink">
         {label}
       </label>
-      <div className="mt-1.5">{children}</div>
+      <div className="mt-1.5">{control}</div>
       {(error || hint) && (
-        <p className={cn('mt-1.5 text-xs', error ? 'text-danger' : 'text-muted')}>
+        <p id={noteId} className={cn('mt-1.5 text-xs', error ? 'text-danger' : 'text-muted')}>
           {error ?? hint}
         </p>
       )}

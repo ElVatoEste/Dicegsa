@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -33,14 +33,42 @@ export function Drawer({
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const mounted = useMounted();
+  const titleId = useId();
+  // En una referencia: las pantallas pasan una función nueva en cada render, y como
+  // dependencia del efecto le robaría el foco al campo que se está escribiendo.
+  const close = useRef(onClose);
+  close.current = onClose;
 
   useEffect(() => {
     if (!open) return;
+    // Al cerrar, el foco vuelve a donde estaba: quien usa teclado no pierde su lugar.
+    const previous = document.activeElement as HTMLElement | null;
     panel.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return close.current();
+      if (e.key !== 'Tab' || !panel.current) return;
+      // Mientras está abierto, Tab recorre solo el panel y no lo que quedó detrás del velo.
+      const focusable = panel.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      previous?.focus();
+    };
+  }, [open]);
 
   if (!mounted) return null;
 
@@ -60,6 +88,7 @@ export function Drawer({
         ref={panel}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
         tabIndex={-1}
         className={cn(
           'absolute inset-y-0 right-0 flex w-full flex-col bg-surface shadow-2xl shadow-brand-950/20 outline-none',
@@ -70,7 +99,7 @@ export function Drawer({
       >
         <header className="flex items-start gap-4 border-b border-line px-6 py-5">
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+            <h2 id={titleId} className="text-lg font-semibold tracking-tight">{title}</h2>
             {subtitle && <div className="mt-0.5 text-sm text-muted">{subtitle}</div>}
           </div>
           <button
