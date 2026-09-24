@@ -1,0 +1,131 @@
+@import 'tailwindcss';
+
+/*
+  Paleta de la aplicación. Toda la escala de marca sale de #a1dcff (brand-300):
+  los tonos claros son superficies y realces, los oscuros son texto, acción y
+  navegación. El rojo queda reservado para la pronta entrega y los errores, así
+  que cuando aparece se lee sin competir con nada.
+*/
+@theme {
+  --font-sans: var(--font-barlow), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --color-brand-50: #f1f9ff;
+  --color-brand-100: #e2f3ff;
+  --color-brand-200: #c6e9ff;
+  --color-brand-300: #a1dcff;
+  --color-brand-400: #62bdf2;
+  --color-brand-500: #2596d6;
+  --color-brand-600: #1473b0;
+  --color-brand-700: #115d8f;
+  --color-brand-800: #0f4a72;
+  --color-brand-900: #0c3552;
+  --color-brand-950: #08243a;
+
+  --color-canvas: #f4f8fb;
+  --color-surface: #ffffff;
+  --color-ink: #0e2233;
+  --color-muted: #5b6d80;
+  --color-line: #e0e9f1;
+
+  --color-success: #12805c;
+  --color-success-soft: #e3f5ee;
+  --color-warning: #9a5b06;
+  --color-warning-soft: #fcf1de;
+  --color-danger: #c42b22;
+  --color-danger-soft: #fdecea;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Cifras de ancho fijo: un cronómetro o un contador no debe saltar al cambiar. */
+.cifras {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+/* Pulgar claro para la barra de navegación, que va sobre fondo oscuro. */
+.scroll-tenue {
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+@keyframes dg-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Una sola entrada orquestada al montar la pantalla, no una por tarjeta. */
+.entra {
+  animation: dg-entrada 320ms var(--ease-out) both;
+}
+
+/*
+  Entrada escalonada de una lista al cargar. Solo los primeros elementos llevan
+  retardo: pasado el octavo, esperar más haría sentir lenta la pantalla.
+*/
+.escalona > * {
+  animation: dg-entrada 280ms var(--ease-out) both;
+}
+.escalona > *:nth-child(2) { animation-delay: 30ms; }
+.escalona > *:nth-child(3) { animation-delay: 60ms; }
+.escalona > *:nth-child(4) { animation-delay: 90ms; }
+.escalona > *:nth-child(5) { animation-delay: 120ms; }
+.escalona > *:nth-child(6) { animation-delay: 150ms; }
+.escalona > *:nth-child(7) { animation-delay: 180ms; }
+.escalona > *:nth-child(n + 8) { animation-delay: 210ms; }
+
+/* Pulso para lo que vence pronto: llama la atención sin mover nada de lugar. */
+@keyframes dg-pulso {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulsa {
+  animation: dg-pulso 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* En la capa base para que las utilidades puedan anular el contorno donde ya hay otro indicador de foco. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}

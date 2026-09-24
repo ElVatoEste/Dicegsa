@@ -1,0 +1,88 @@
+import { api, PATHS } from '../client';
+import type { SystemRole } from './auth';
+
+export type FloorRole = 'picker' | 'checker';
+
+export interface Account {
+  id: string;
+  accountName: string;
+  role: SystemRole;
+  active: boolean;
+  mustChangePassword: boolean;
+  createdAt: string;
+  updatedAt: string;
+  /** Perfil de colaborador; null en las cuentas que no trabajan en el piso. */
+  fullName: string | null;
+  floorRole: FloorRole | null;
+}
+
+export type AdminAction =
+  | 'create'
+  | 'reset_password'
+  | 'change_role'
+  | 'deactivate'
+  | 'reactivate'
+  | 'update_worker';
+
+export interface AdminEvent {
+  id: string;
+  actorId: string;
+  targetAccountId: string;
+  action: AdminAction;
+  details: Record<string, string> | null;
+  createdAt: string;
+}
+
+/** El alta y el reinicio devuelven la contraseña en claro una sola vez. */
+export interface WithHandover {
+  account: Account;
+  initialPassword: string;
+}
+
+export interface ResetRequest {
+  id: string;
+  accountName: string;
+  /** Null cuando el nombre tipeado no corresponde a ninguna cuenta. */
+  accountId: string | null;
+  note: string | null;
+  status: 'pending' | 'resolved' | 'dismissed';
+  createdAt: string;
+  resolvedBy: string | null;
+  resolvedAt: string | null;
+}
+
+export const resetRequestsApi = {
+  /** Público: responde igual exista o no la cuenta. */
+  send: (accountName: string, note?: string) =>
+    api.post<{ received: true }>(PATHS.resetRequests.root, { accountName, note }),
+
+  list: (token: string) => api.get<ResetRequest[]>(PATHS.resetRequests.root, { token }),
+
+  dismiss: (token: string, id: string) =>
+    api.post<void>(PATHS.resetRequests.dismiss(id), undefined, { token }),
+};
+
+export const accountsApi = {
+  list: (token: string) => api.get<Account[]>(PATHS.accounts.root, { token }),
+
+  auditLog: (token: string) => api.get<AdminEvent[]>(PATHS.accounts.auditLog, { token }),
+
+  create: (token: string, accountName: string, role: SystemRole) =>
+    api.post<WithHandover>(PATHS.accounts.root, { accountName, role }, { token }),
+
+  resetPassword: (token: string, id: string) =>
+    api.post<WithHandover>(PATHS.accounts.passwordReset(id), undefined, { token }),
+
+  changeRole: (token: string, id: string, role: SystemRole) =>
+    api.patch<Account>(PATHS.accounts.role(id), { role }, { token }),
+
+  saveWorker: (token: string, id: string, fullName: string, floorRole: FloorRole) =>
+    api.put<unknown>(PATHS.accounts.worker(id), { fullName, floorRole }, { token }),
+
+  setActive: (token: string, id: string, active: boolean) =>
+    api.post<Account>(
+      active ? PATHS.accounts.reactivate(id) : PATHS.accounts.deactivate(id),
+      undefined,
+      { token },
+    ),
+};
