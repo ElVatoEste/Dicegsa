@@ -17,6 +17,19 @@ incentivos que hoy penaliza al operario por paradas que no controla. Si es tu pr
 |---|---|
 | [`ingenieria/ARQUITECTURA.md`](ingenieria/ARQUITECTURA.md) | Modelo de dominio, flujos de alisto y cálculo, stack, modelo de cuentas, 10 invariantes críticas. |
 
+## Diagramas — UML y datos
+Archivos `.drawio`: se abren y editan con [draw.io](https://app.diagrams.net) (web o escritorio, gratis).
+
+| Doc | Contenido |
+|---|---|
+| [`diagramas/01-casos-de-uso.drawio`](diagramas/01-casos-de-uso.drawio) | Actores (alistador, validador, mesa de control, supervisor, gerencia, administrador) y sus casos de uso. |
+| [`diagramas/02-clases.drawio`](diagramas/02-clases.drawio) | Modelo de dominio: PKL, pedido, línea, asignación, parada, error de validación, cálculo OLE. |
+| [`diagramas/03-entidad-relacion.drawio`](diagramas/03-entidad-relacion.drawio) | Las 15 tablas de PostgreSQL con columnas y claves foráneas, tal como están en el esquema Drizzle. |
+| [`diagramas/04-secuencia.drawio`](diagramas/04-secuencia.drawio) | Dos páginas: el alistador marca una línea y el validador revisa un PKL. |
+| [`diagramas/05-despliegue.drawio`](diagramas/05-despliegue.drawio) | Computadoras del almacén, VPS con nginx, Bun y PostgreSQL, y ERP en solo lectura. |
+| [`diagramas/png/`](diagramas/png/) | Los cinco anteriores exportados a PNG en alta resolución; la secuencia en dos imágenes. Se regeneran al cambiar un `.drawio`. |
+| [`diagramas/borradores/`](diagramas/borradores/) | **Pendientes, segundo plano.** Borradores de actividad, estados y componentes, sin revisar. |
+
 ## Decisiones — el registro vivo (interno)
 | Doc | Contenido |
 |---|---|
