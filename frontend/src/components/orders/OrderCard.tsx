@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin } from 'lucide-react';
+import { Check, Clock, MapPin } from 'lucide-react';
 import type { OrderRow } from '@/lib/api';
 import { Badge, Checkbox } from '@/components/ui';
 import { cn } from '@/lib/cn';
@@ -51,12 +51,12 @@ export function OrderCard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
-        'relative overflow-hidden rounded-xl border bg-surface p-3.5 pl-4 text-sm outline-none',
-        'transition-[border-color,box-shadow,translate,opacity,scale] duration-150 hover:-translate-y-px hover:shadow-md hover:shadow-brand-900/8',
+        'relative rounded-lg border bg-surface p-3 text-sm shadow-xs shadow-brand-950/5 outline-none',
+        'transition-[border-color,box-shadow,opacity,scale] duration-150 hover:shadow-sm',
         draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
         dragging && 'scale-[0.98] opacity-40',
         'has-[button:focus-visible]:ring-4 has-[button:focus-visible]:ring-brand-500/20',
-        selected ? 'border-brand-400 ring-2 ring-brand-300/60' : hot ? 'border-danger/30' : 'border-line hover:border-brand-200',
+        selected ? 'border-brand-500 ring-1 ring-brand-500' : 'border-line hover:border-brand-200',
       )}
     >
       {/*
@@ -67,52 +67,64 @@ export function OrderCard({
         type="button"
         onClick={onOpen}
         aria-label={`Abrir pedido ${order.externalId} de ${order.clientName}`}
-        className="absolute inset-0 z-0 outline-none"
-      />
-      {/* Franja de urgencia: se ve sin leer la tarjeta. */}
-      <span
-        aria-hidden
-        className={cn('absolute inset-y-0 left-0 w-1', hot ? 'bg-danger' : order.status === 'done' ? 'bg-success/60' : 'bg-transparent')}
+        className="absolute inset-0 z-0 rounded-lg outline-none"
       />
 
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-center gap-2">
         {selectable && (
-          <span className="relative z-10 pt-0.5">
+          <span className="relative z-10">
             <Checkbox label={`Seleccionar pedido ${order.externalId}`} checked={selected} onChange={onSelect} />
           </span>
         )}
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center justify-between gap-2">
-            <span className="cifras text-xs text-muted">{order.externalId}</span>
-            <span className="cifras text-xs font-semibold">{order.units} u</span>
-          </p>
-          <p className="mt-0.5 truncate font-medium">{order.clientName}</p>
-          <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted">
-            <MapPin size={12} className="shrink-0" aria-hidden />
-            {order.municipality}, {order.department}
-            {order.dispatchZoneId && ` · ${zoneName.get(order.dispatchZoneId)}`}
-          </p>
-        </div>
+        <span className="cifras text-xs text-muted">{order.externalId}</span>
+        <span className="cifras ml-auto text-xs text-muted">
+          <span className="font-semibold text-ink">{order.units}</span> u
+        </span>
       </div>
 
+      <p className="mt-1.5 truncate font-medium leading-snug">{order.clientName}</p>
+      <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted">
+        <MapPin size={12} className="shrink-0" aria-hidden />
+        <span className="truncate">
+          {order.municipality}, {order.department}
+          {order.dispatchZoneId && ` · ${zoneName.get(order.dispatchZoneId)}`}
+        </span>
+      </p>
+
       {order.inventoryZoneId && (
-        <Badge tone="brand" className="mt-2.5 max-w-full truncate">{zoneName.get(order.inventoryZoneId)}</Badge>
+        <Badge className="mt-2 max-w-full">
+          <span className="truncate">{zoneName.get(order.inventoryZoneId)}</span>
+        </Badge>
       )}
 
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-2.5">
-        <span className={cn('flex items-center gap-1.5 text-xs font-medium', hot ? 'text-danger' : 'text-muted')}>
-          {hot && <span aria-hidden className="pulsa size-1.5 rounded-full bg-danger" />}
-          {order.status === 'done' ? 'Validado' : formatRemaining(new Date(order.dueAt).getTime() - now)}
-        </span>
+      <div className="mt-3 flex items-center gap-2">
+        {order.status === 'done' ? (
+          <Badge tone="success">
+            <Check size={12} strokeWidth={2.5} aria-hidden />
+            Validado
+          </Badge>
+        ) : hot ? (
+          <Badge tone="danger" className="shrink-0">
+            <span aria-hidden className="pulsa size-1.5 rounded-full bg-danger" />
+            {formatRemaining(new Date(order.dueAt).getTime() - now)}
+          </Badge>
+        ) : (
+          <span className="flex shrink-0 items-center gap-1 text-xs text-muted">
+            <Clock size={12} aria-hidden />
+            {formatRemaining(new Date(order.dueAt).getTime() - now)}
+          </span>
+        )}
         {order.assignee ? (
-          <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted" title={order.assignee.name}>
+          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-muted" title={order.assignee.name}>
             <span className="cifras">PKL {order.pickListNumber}</span>
-            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-100 text-[10px] font-semibold text-brand-800">
+            <span className="grid size-6 place-items-center rounded-full bg-brand-100 text-[10px] font-semibold text-brand-800">
               {initials}
             </span>
           </span>
         ) : (
-          <span className="text-xs text-muted">{order.lineCount} {order.lineCount === 1 ? 'línea' : 'líneas'}</span>
+          <span className="ml-auto shrink-0 text-xs text-muted">
+            {order.lineCount} {order.lineCount === 1 ? 'línea' : 'líneas'}
+          </span>
         )}
       </div>
     </li>

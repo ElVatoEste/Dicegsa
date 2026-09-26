@@ -27,11 +27,12 @@ import { useToast } from '@/components/Toasts';
 
 type Column = Exclude<OrderStatus, 'cancelled'>;
 
-const COLUMNS: { status: Column; title: string; empty: string }[] = [
-  { status: 'unassigned', title: 'Sin asignar', empty: 'No hay pedidos esperando.' },
-  { status: 'in_progress', title: 'En preparación', empty: 'Nadie está alistando.' },
-  { status: 'validating', title: 'En validación', empty: 'Nada espera al validador.' },
-  { status: 'done', title: 'Finalizados', empty: 'Todavía no hay pedidos validados.' },
+/** `dot` es el color del estado: identifica la columna sin depender del título. */
+const COLUMNS: { status: Column; title: string; empty: string; dot: string }[] = [
+  { status: 'unassigned', title: 'Sin asignar', empty: 'No hay pedidos esperando.', dot: 'border-2 border-muted/60' },
+  { status: 'in_progress', title: 'En preparación', empty: 'Nadie está alistando.', dot: 'bg-brand-500' },
+  { status: 'validating', title: 'En validación', empty: 'Nada espera al validador.', dot: 'bg-warning' },
+  { status: 'done', title: 'Finalizados', empty: 'Todavía no hay pedidos validados.', dot: 'bg-success' },
 ];
 
 /** Los finalizados se acumulan todo el día; la columna muestra los últimos. */
@@ -201,7 +202,7 @@ export default function OrdersPage() {
 
       <div className="-mx-5 mt-5 overflow-x-auto px-5 pb-4 md:-mx-10 md:px-10">
         <div className="grid min-w-[64rem] grid-cols-4 items-start gap-4">
-          {COLUMNS.map(({ status, title, empty }) => {
+          {COLUMNS.map(({ status, title, empty, dot }) => {
             const all = columns[status];
             const cards = status === 'done' ? all.slice(0, DONE_LIMIT) : all;
             const urgent = status === 'done' ? 0 : all.filter((o) => urgencyOf(o.dueAt, now, threshold) !== 'normal').length;
@@ -224,13 +225,13 @@ export default function OrdersPage() {
                   void drop(status);
                 }}
                 className={cn(
-                  'flex max-h-[calc(100vh-13rem)] flex-col rounded-2xl border-2 border-transparent bg-brand-100/45 transition-[background-color,border-color,opacity] duration-150',
+                  'flex max-h-[calc(100vh-13rem)] flex-col rounded-xl border border-transparent bg-brand-900/[0.03] transition-[background-color,border-color,opacity] duration-150',
                   drag && drag.from !== status && !accepts(status) && 'opacity-45',
                   drag && accepts(status) && 'border-dashed border-brand-300',
-                  over === status && accepts(status) && 'border-brand-500 bg-brand-100',
+                  over === status && accepts(status) && 'border-solid border-brand-400 bg-brand-100/60',
                 )}
               >
-                <header className="flex items-center gap-2 px-3.5 pb-2 pt-3">
+                <header className="flex h-11 items-center gap-2 px-3">
                   {selectable && all.length > 0 && (
                     <Checkbox
                       label="Seleccionar todos los pedidos sin asignar"
@@ -239,23 +240,25 @@ export default function OrdersPage() {
                       onChange={(on) => setSelected(on ? new Set(all.map((o) => o.id)) : new Set())}
                     />
                   )}
+                  {!(selectable && all.length > 0) && <span aria-hidden className={cn('size-2.5 shrink-0 rounded-full', dot)} />}
                   <h2 className="text-sm font-semibold">{title}</h2>
-                  <span className="cifras rounded-md bg-surface px-1.5 text-xs leading-5 text-muted">{all.length}</span>
+                  <span className="cifras text-xs text-muted">{all.length}</span>
                   {urgent > 0 && (
-                    <span className="cifras ml-auto rounded-md bg-danger px-1.5 text-xs leading-5 text-white" title="De pronta entrega">
-                      {urgent} {urgent === 1 ? 'urgente' : 'urgentes'}
+                    <span className="ml-auto flex items-center gap-1.5 text-xs font-medium text-danger" title="De pronta entrega">
+                      <span aria-hidden className="size-1.5 rounded-full bg-danger" />
+                      <span className="cifras">{urgent}</span> {urgent === 1 ? 'urgente' : 'urgentes'}
                     </span>
                   )}
                 </header>
-                <div className="min-h-24 flex-1 overflow-y-auto px-2.5 pb-2.5">
+                <div className="min-h-24 flex-1 overflow-y-auto px-2 pb-2">
                   {!data ? (
                     <div className="space-y-2">
                       {[0, 1].map((i) => (
-                        <div key={i} className="h-32 animate-pulse rounded-xl bg-surface/70" />
+                        <div key={i} className="h-28 animate-pulse rounded-lg bg-surface/70" />
                       ))}
                     </div>
                   ) : cards.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-brand-200 px-3 py-6 text-center text-xs text-muted">
+                    <p className="px-3 py-8 text-center text-xs text-muted">
                       {empty}
                     </p>
                   ) : (
