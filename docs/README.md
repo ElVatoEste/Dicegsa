@@ -27,8 +27,10 @@ Archivos `.drawio`: se abren y editan con [draw.io](https://app.diagrams.net) (w
 | [`diagramas/03-entidad-relacion.drawio`](diagramas/03-entidad-relacion.drawio) | Las 15 tablas de PostgreSQL con columnas y claves foráneas, tal como están en el esquema Drizzle. |
 | [`diagramas/04-secuencia.drawio`](diagramas/04-secuencia.drawio) | Dos páginas: el alistador marca una línea y el validador revisa un PKL. |
 | [`diagramas/05-despliegue.drawio`](diagramas/05-despliegue.drawio) | Computadoras del almacén, VPS con nginx, Bun y PostgreSQL, y ERP en solo lectura. |
-| [`diagramas/png/`](diagramas/png/) | Los cinco anteriores exportados a PNG en alta resolución; la secuencia en dos imágenes. Se regeneran al cambiar un `.drawio`. |
-| [`diagramas/borradores/`](diagramas/borradores/) | **Pendientes, segundo plano.** Borradores de actividad, estados y componentes, sin revisar. |
+| [`diagramas/06-actividades.drawio`](diagramas/06-actividades.drawio) | Ciclo de un PKL por carriles: televentas, mesa de control, alistador, inventario y validador. |
+| [`diagramas/07-componentes.drawio`](diagramas/07-componentes.drawio) | Componentes de la interfaz y módulos de NestJS, con las interfaces REST y WebSocket. |
+| [`diagramas/08-estados.drawio`](diagramas/08-estados.drawio) | Máquinas de estado del PKL y de la línea de pedido, contrastadas con las reglas del servidor. |
+| [`diagramas/png/`](diagramas/png/) | Los anteriores exportados a PNG en alta resolución; la secuencia en dos imágenes. Se regeneran al cambiar un `.drawio`. |
 
 ## Decisiones — el registro vivo (interno)
 | Doc | Contenido |
