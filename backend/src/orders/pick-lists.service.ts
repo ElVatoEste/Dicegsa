@@ -139,7 +139,8 @@ export class PickListsService {
   }
 
   async detail(id: string) {
-    const pickList = await this.requirePickList(this.db, id);
+    const [pickList] = await this.db.select().from(pickLists).where(eq(pickLists.id, id)).limit(1);
+    if (!pickList) throw new NotFoundException('No existe ese PKL');
     const current = await this.currentAssignment(this.db, id);
     const [assignee] = current
       ? await this.db
@@ -331,8 +332,13 @@ export class PickListsService {
       .orderBy(asc(workers.fullName));
   }
 
+  /**
+   * Dentro de una transacción bloquea la fila del PKL hasta el commit: dos operaciones
+   * simultáneas sobre el mismo PKL se aplican una detrás de otra y la segunda ve el
+   * estado que dejó la primera.
+   */
   private async requirePickList(tx: Db | Tx, id: string) {
-    const [pickList] = await tx.select().from(pickLists).where(eq(pickLists.id, id)).limit(1);
+    const [pickList] = await tx.select().from(pickLists).where(eq(pickLists.id, id)).limit(1).for('update');
     if (!pickList) throw new NotFoundException('No existe ese PKL');
     return pickList as typeof pickList & { status: PickListStatus };
   }

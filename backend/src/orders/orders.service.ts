@@ -175,7 +175,13 @@ export class OrdersService {
       if (!order) throw new NotFoundException('No existe ese pedido');
       if (!order.pickListId) throw new BadRequestException('El pedido no está asignado');
 
-      const [pickList] = await tx.select().from(pickLists).where(eq(pickLists.id, order.pickListId)).limit(1);
+      // Bloquea el PKL para que una marca de línea simultánea no se cuele entre el chequeo y la liberación.
+      const [pickList] = await tx
+        .select()
+        .from(pickLists)
+        .where(eq(pickLists.id, order.pickListId))
+        .limit(1)
+        .for('update');
       const lines = await tx.select({ status: orderLines.status }).from(orderLines).where(eq(orderLines.orderId, id));
       if (!canRelease(pickList!.status as PickListStatus, lines.map((l) => l.status))) {
         throw new BadRequestException('El alistador ya empezó este pedido: no se puede devolver a sin asignar');
