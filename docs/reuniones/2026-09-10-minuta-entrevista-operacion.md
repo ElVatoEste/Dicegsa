@@ -103,7 +103,7 @@ rol. Ver [P-015](../decisiones/POR-ACLARAR.md).
 > por así decirlo."
 
 Lo que pide es exactamente el panel de supervisión en vivo
-([REQ-014](../producto/REQUERIMIENTOS.md)). "GPS de alistadores" es la formulación del
+([RF-035](../producto/REQUERIMIENTOS.md)). "GPS de alistadores" es la formulación del
 propio usuario de lo que espera ver.
 
 ## 5. El seguimiento hoy ya pasa por el sistema
@@ -141,8 +141,7 @@ Consecuencias:
 - El Kanban necesita ordenar por urgencia relativa, no por orden de llegada.
 - Hace falta alerta por proximidad de vencimiento.
 
-De acá salen [REQ-035](../producto/REQUERIMIENTOS.md) a
-[REQ-037](../producto/REQUERIMIENTOS.md).
+De acá salen [RF-013, RF-015 y RF-016](../producto/REQUERIMIENTOS.md).
 
 Sobre **PKL**: por cómo se usa —algo que "cae", acumula tiempo y tiene ventana— se modela
 como el código que identifica a la orden de alisto en el piso. Es un supuesto de trabajo,
@@ -155,7 +154,7 @@ no una confirmación de CDF. Ver [P-017](../decisiones/POR-ACLARAR.md).
 > cumplimos la meta, pero no porque el cien por ciento** (…)."
 
 La meta se evalúa agregada: el almacén cumple aunque adentro haya gente por debajo del
-estándar. Refuerza la medición **por colaborador** ([REQ-012](../producto/REQUERIMIENTOS.md)),
+estándar. Refuerza la medición **por colaborador** ([RF-032](../producto/REQUERIMIENTOS.md)),
 que es lo que el agregado esconde.
 
 ## 8. Reconoce factores externos y que hoy no se mide con exactitud
@@ -200,7 +199,7 @@ Tres consecuencias:
   posición y actividad; es el mismo flujo que alimenta el Kanban y el cronometraje.
 - **"La gente que ande sin handheld" es un hueco de medición.** Un alistador trabajando sin
   equipo no genera eventos, y sin eventos no hay OLE. Ver
-  [REQ-039](../producto/REQUERIMIENTOS.md).
+  [RF-036](../producto/REQUERIMIENTOS.md).
 
 **No recuperable:** el tramo sobre asignación de pedidos y distribución de carga (pregunta 6
 del Bloque 3) quedó ininteligible en la transcripción. La pregunta sigue sin responder.
@@ -209,10 +208,10 @@ del Bloque 3) quedó ininteligible en la transcripción. La pregunta sigue sin r
 
 | Efecto | Dónde |
 |---|---|
-| Estándar de 15 líneas/hora como línea base de P | [`PRODUCTO.md`](../producto/PRODUCTO.md), [`REQ-008`](../producto/REQUERIMIENTOS.md) |
+| Estándar de 15 líneas/hora como línea base de P | [`PRODUCTO.md`](../producto/PRODUCTO.md), [`RF-044`](../producto/REQUERIMIENTOS.md) |
 | Rol `valeador` y ponderación del error por valor del rol | [`ARQUITECTURA.md`](../ingenieria/ARQUITECTURA.md) |
 | P-002 avanza: hay estándar plano, falta la ponderación por complejidad | [`POR-ACLARAR.md`](../decisiones/POR-ACLARAR.md) |
-| Ventanas de entrega por cliente y alertas de vencimiento | [`REQ-035`…`REQ-038`](../producto/REQUERIMIENTOS.md) |
+| Ventanas de entrega por cliente y alertas de vencimiento | [`RF-013`, `RF-015`, `RF-016`, `RF-025`](../producto/REQUERIMIENTOS.md) |
 | Factores externos reconocidos por la operación, respaldo de D | [`PRODUCTO.md`](../producto/PRODUCTO.md) |
 | P-012, P-014, P-015, P-016, P-017, P-018 abiertas | [`POR-ACLARAR.md`](../decisiones/POR-ACLARAR.md) |
 

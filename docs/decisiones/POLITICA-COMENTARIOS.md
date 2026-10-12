@@ -147,8 +147,8 @@ No:
 
 Lo más grave, y lo primero que se saca en una auditoría:
 
-- **IDs de registro o de tarea**: `REQ-014`, `D-005`, `P-003`, `tarea 121`.
-- **Estado de una tarea**: "REQ-014 hecho", "esto cierra P-003", "queda pendiente".
+- **IDs de registro o de tarea**: `RF-035`, `D-005`, `P-003`, `tarea 121`.
+- **Estado de una tarea**: "RF-035 hecho", "esto cierra P-003", "queda pendiente".
 - **Rutas a archivos de documentación**: `docs/…`, rutas absolutas de la máquina.
 - **Commits y fechas de release**: "validado contra el esquema (commit `drizzle`, 2026-09-02)".
 
@@ -160,7 +160,7 @@ mintiendo en silencio. Ese estado vive en
 Cuando el ID acompaña una restricción real, se conserva la restricción y se tira el ID:
 
 ```ts
-// REQ-004: registro de bloqueo en un toque.
+// RF-026: registro de bloqueo en un toque.
 // →
 // Una parada sin causa del catálogo no se puede clasificar como imputable,
 // así que la causa es obligatoria al abrirla.

@@ -28,7 +28,8 @@ de cumplimiento obligatorio al escribir, revisar o auditar código. En corto:
 - Sin emojis decorativos en encabezados.
 - Las decisiones se registran en
   [`docs/decisiones/POR-ACLARAR.md`](docs/decisiones/POR-ACLARAR.md) como `D-NNN`, y las
-  dudas abiertas como `P-NNN`. Los requisitos son `REQ-NNN`.
+  dudas abiertas como `P-NNN`. Los requisitos son `RF-NNN` (funcionales) y `RNF-NNN`
+  (no funcionales).
 - Una decisión que cambia el código se registra en el mismo cambio que lo modifica.
 
 ## Código

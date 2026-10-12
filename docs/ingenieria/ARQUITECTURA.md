@@ -209,7 +209,7 @@ App detrás de login (sin SEO), con datos en tiempo real por WebSocket. SSR no a
 3. **El tiempo lo pone el servidor.** Las marcas de tiempo nunca vienen del reloj del equipo: relojes desajustados en bodega falsean el cronometraje.
 4. **Toda parada tiene causa del catálogo.** No existe parada sin tipificar; sin causa no se puede decidir si descuenta.
 5. **Solo las paradas no imputables descuentan de la Disponibilidad.** Es la invariante que sostiene toda la tesis de equidad.
-6. **`OLE` es derivable.** Recalcular desde los eventos debe reproducir el valor almacenado; si no, el desglose auditable (REQ-013) es mentira.
+6. **`OLE` es derivable.** Recalcular desde los eventos debe reproducir el valor almacenado; si no, el desglose auditable (RF-034) es mentira.
 7. **Los tres factores están acotados a [0, 1].** Un factor fuera de rango es un bug del modelo, no un desempeño excepcional.
 8. **Un error de calidad nunca descuenta tiempo.** Entra por Q, por causa de origen, nunca como deducción al tiempo total (S-2.2).
 9. **La contraseña solo se guarda hasheada.** Argon2id o bcrypt. Que el admin la entregue en mano no la vuelve un dato en claro.

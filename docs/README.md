@@ -9,7 +9,7 @@ incentivos que hoy penaliza al operario por paradas que no controla. Si es tu pr
 | Doc | Contenido |
 |---|---|
 | [`producto/PRODUCTO.md`](producto/PRODUCTO.md) | **Documento maestro.** Tesis, indicador OLE, alcance, principios de diseño. Empezar aquí. |
-| [`producto/REQUERIMIENTOS.md`](producto/REQUERIMIENTOS.md) | 39 requisitos (`REQ-001`…`REQ-039`) agrupados por Kanban, modelo OLE, supervisión, plataforma, cuentas y validación. |
+| [`producto/REQUERIMIENTOS.md`](producto/REQUERIMIENTOS.md) | Alcance, 48 requisitos funcionales (`RF-NNN`) por módulo y 22 no funcionales (`RNF-NNN`) por atributo de calidad. |
 | [`producto/ROADMAP.md`](producto/ROADMAP.md) | Fase 0 diagnóstico → MVP Kanban → v1 motor OLE → v2 validación. |
 
 ## Ingeniería — cómo está hecho
