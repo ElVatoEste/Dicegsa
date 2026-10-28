@@ -31,7 +31,7 @@ export default function SettingsPage() {
         value={section}
         onChange={setSection}
         options={[
-          { value: 'stop_causes', label: 'Causas de parada' },
+          { value: 'stop_causes', label: 'Causas de interrupción' },
           { value: 'dispatch_zone', label: CATALOG_LABEL.dispatch_zone.title },
           { value: 'inventory_zone', label: CATALOG_LABEL.inventory_zone.title },
           { value: 'error_type', label: CATALOG_LABEL.error_type.title },

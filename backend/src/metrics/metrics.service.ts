@@ -151,10 +151,22 @@ export class MetricsService {
         accountName: person.accountName,
         activity: { ...activity, excusedStopMinutes: Math.round(excusedStopMs / 60_000), ownStopMinutes: Math.round(ownStopMs / 60_000) },
         metrics: computeWorkerMetrics(activity, settings),
-        stopsByCause: [...byCause.values()].map((c) => ({ ...c, minutes: Math.round(c.minutes) })),
+        stopsByCause: [...byCause.values()]
+          .map((c) => ({ ...c, minutes: Math.round(c.minutes) }))
+          .sort((a, b) => b.minutes - a.minutes),
         errorsByType: [...byType.values()],
       };
     });
+
+    // Solo las interrupciones que le pesan al alistador explican la caída de disponibilidad.
+    const topCauseByMinutes = new Map<string, number>();
+    for (const s of stopRows) {
+      if (!s.attributable) continue;
+      const ms = (s.endedAt?.getTime() ?? now) - s.startedAt.getTime();
+      topCauseByMinutes.set(s.cause, (topCauseByMinutes.get(s.cause) ?? 0) + ms / 60_000);
+    }
+    const [topCause] = [...topCauseByMinutes.entries()].sort((a, b) => b[1] - a[1]);
+    const topStopCause = topCause ? { cause: topCause[0], minutes: Math.round(topCause[1]) } : null;
 
     const active = rows.filter((r) => r.metrics);
     const sum = (f: (r: (typeof rows)[number]) => number) => rows.reduce((a, r) => a + f(r), 0);
@@ -173,6 +185,7 @@ export class MetricsService {
         errorCount: sum((r) => r.activity.errorCount),
         errorUnits: sum((r) => r.activity.errorUnits),
         excusedStopMinutes: sum((r) => r.activity.excusedStopMinutes),
+        topStopCause,
         linesPerHour: avg((m) => m.linesPerHour),
         unitsPerHour: avg((m) => m.unitsPerHour),
         availability: avg((m) => m.availability),

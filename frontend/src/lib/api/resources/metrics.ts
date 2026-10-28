@@ -42,6 +42,7 @@ export interface MetricsReport {
     errorCount: number;
     errorUnits: number;
     excusedStopMinutes: number;
+    topStopCause: { cause: string; minutes: number } | null;
     linesPerHour: number | null;
     unitsPerHour: number | null;
     availability: number | null;

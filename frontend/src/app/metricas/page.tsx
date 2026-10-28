@@ -112,7 +112,7 @@ function General({ report }: { report: MetricsReport }) {
 
         <section className="rounded-2xl border border-line bg-surface p-6">
           <p className="text-sm text-muted">Método vigente</p>
-          <p className="mt-0.5 text-xs text-muted">Sobre {report.settings.workdayHours} h por día trabajado, sin descontar paradas.</p>
+          <p className="mt-0.5 text-xs text-muted">Sobre {report.settings.workdayHours} h por día trabajado, sin descontar interrupciones.</p>
           <div className="mt-5 grid grid-cols-2 gap-4">
             <div>
               <p className="cifras text-3xl font-semibold">{num(t.linesPerHour)}</p>
@@ -129,7 +129,7 @@ function General({ report }: { report: MetricsReport }) {
         </section>
       </div>
 
-      <div className="escalona mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="escalona mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
         <Tile label="Pedidos finalizados" value={num(t.ordersDone, 0)} />
         <Tile label="Líneas alistadas" value={num(t.lines, 0)} />
         <Tile label="Unidades" value={num(t.units, 0)} />
@@ -139,10 +139,17 @@ function General({ report }: { report: MetricsReport }) {
           detail={errorRate === null ? undefined : `${num(t.errorUnits, 0)} u · ${pct(errorRate)} de las unidades`}
         />
         <Tile
-          label="Paradas que no dependen del alistador"
+          label="Interrupciones que no dependen del alistador"
           value={`${num(t.excusedStopMinutes / 60)} h`}
           detail={`${t.activeWorkers} ${t.activeWorkers === 1 ? 'colaborador activo' : 'colaboradores activos'}`}
         />
+        {t.topStopCause && (
+          <Tile
+            label="Interrupción más crítica"
+            value={t.topStopCause.cause}
+            detail={`${num(t.topStopCause.minutes / 60)} h acumuladas en el período`}
+          />
+        )}
       </div>
     </>
   );
@@ -293,15 +300,16 @@ function WorkerDrawer({
           <section>
             <h3 className="flex items-center gap-2 text-sm font-semibold">
               <PauseCircle size={15} className="text-warning" aria-hidden />
-              Paradas
+              Interrupciones
             </h3>
             {w.stopsByCause.length === 0 ? (
-              <p className="mt-2 text-sm text-muted">Sin paradas en el período.</p>
+              <p className="mt-2 text-sm text-muted">Sin interrupciones en el período.</p>
             ) : (
               <ul className="mt-2 divide-y divide-line rounded-xl border border-line">
-                {w.stopsByCause.map((s) => (
+                {w.stopsByCause.map((s, i) => (
                   <li key={s.cause} className="flex items-center gap-3 px-4 py-2.5 text-sm">
                     <span className="min-w-0 flex-1 truncate">{s.cause}</span>
+                    {i === 0 && <Badge tone="danger">Más crítica</Badge>}
                     <Badge tone={s.attributable ? 'warning' : 'brand'}>{s.attributable ? 'Depende de él' : 'No descuenta'}</Badge>
                     <span className="cifras w-20 text-right">
                       {s.minutes} min

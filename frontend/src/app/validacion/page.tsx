@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CheckCircle2, ClipboardCheck, Minus, Plus, TriangleAlert, Undo2, X } from 'lucide-react';
+import { Barcode, CheckCircle2, ClipboardCheck, Minus, Plus, TriangleAlert, Undo2, X } from 'lucide-react';
 import {
   catalogsApi,
   pickListsApi,
@@ -12,6 +12,7 @@ import {
 } from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
 import { Shell } from '@/components/Shell';
+import { useToast } from '@/components/Toasts';
 import { Button, EmptyState, Input } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { formatDay } from '@/lib/time';
@@ -33,7 +34,13 @@ async function loadQueue(token: string): Promise<Queue> {
 export default function ValidationPage() {
   const session = useAuthGuard(['validator', 'supervisor', 'admin']);
   const token = session?.token;
-  const { data, reload, connection } = useLive(token, loadQueue, (e) => e.type.startsWith('pick_list.'));
+  const toast = useToast();
+  const { data, reload, connection } = useLive(token, loadQueue, (e) => e.type.startsWith('pick_list.'), '', (event) => {
+    if (event.type === 'pick_list.delivered') {
+      const number = (event.data as { number?: number })?.number;
+      toast.info(number ? `Nuevo PKL para validar: ${number}` : 'Nuevo PKL para validar');
+    }
+  });
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const queue = data?.pickLists ?? [];
@@ -120,13 +127,33 @@ function Review({
 }) {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
+  const [scan, setScan] = useState('');
+  const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
   const { busy, run } = useAction();
+  const toast = useToast();
 
   const byLine = useMemo(() => {
     const map = new Map<string, Draft[]>();
     for (const d of drafts) map.set(d.lineId, [...(map.get(d.lineId) ?? []), d]);
     return map;
   }, [drafts]);
+
+  const lines = useMemo(
+    () => pickList.orders.flatMap((o) => o.lines).filter((l) => l.status !== 'cancelled'),
+    [pickList],
+  );
+
+  function handleScan(code: string) {
+    const trimmed = code.trim();
+    setScan('');
+    if (!trimmed) return;
+    const line = lines.find((l) => l.productCode === trimmed);
+    if (!line) {
+      toast.error(`Ningún producto del PKL tiene el código ${trimmed}`);
+      return;
+    }
+    setConfirmed((all) => new Set(all).add(line.id));
+  }
 
   async function finish() {
     const errors = drafts.map(({ lineId, errorTypeId, units, note }) => ({ lineId, errorTypeId, units, note }));
@@ -144,6 +171,21 @@ function Review({
       <header className="flex flex-wrap items-center gap-3 border-b border-line p-5">
         <h2 className="cifras text-2xl font-semibold tracking-tight">PKL {pickList.number}</h2>
         <span className="text-sm text-muted">Alistó {pickList.assignee?.name ?? '—'}</span>
+        {canValidate && (
+          <label className="ml-auto flex items-center gap-2">
+            <Barcode size={18} className="text-muted" aria-hidden />
+            <Input
+              size="sm"
+              placeholder="Escanear código de barras"
+              value={scan}
+              onChange={(e) => setScan(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleScan(scan);
+              }}
+              className="w-56"
+            />
+          </label>
+        )}
       </header>
 
       <div className="divide-y divide-line">
@@ -168,9 +210,14 @@ function Review({
                       <span className="cifras w-12 text-center text-xl font-semibold">{line.quantity}</span>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium">{line.productName}</p>
-                        <p className="cifras mt-0.5 text-xs text-muted">
+                        <p className="cifras mt-0.5 flex items-center gap-1.5 text-xs text-muted">
                           {line.productCode} · lote <span className="font-semibold text-ink">{line.lot}</span>
                           {line.expiresOn && ` · vence ${formatDay(line.expiresOn)}`}
+                          {confirmed.has(line.id) && (
+                            <span className="flex items-center gap-1 font-medium text-success">
+                              <CheckCircle2 size={13} aria-hidden /> escaneado
+                            </span>
+                          )}
                         </p>
                       </div>
                       {canValidate && editing !== line.id && (

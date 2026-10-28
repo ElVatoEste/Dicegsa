@@ -28,6 +28,7 @@ import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { Logo } from '@/components/Logo';
 import { urgencyOf } from '@/components/orders/urgency';
 import { Badge, Button, Drawer, EmptyState, Input, Progress } from '@/components/ui';
+import { useToast } from '@/components/Toasts';
 import { cn } from '@/lib/cn';
 import { clearSession } from '@/lib/session';
 import { formatDay, formatElapsed, formatRemaining, useNow } from '@/lib/time';
@@ -57,7 +58,13 @@ export default function OperatorPage() {
   const session = useAuthGuard(['operator']);
   const router = useRouter();
   const token = session?.token;
-  const { data, setData, connection } = useLive(token, loadWork);
+  const toast = useToast();
+  const { data, setData, connection } = useLive(token, loadWork, () => true, '', (event) => {
+    if (event.type === 'pick_list.assigned') {
+      const number = (event.data as { number?: number })?.number;
+      toast.info(number ? `Te asignaron el PKL ${number}` : 'Te asignaron un PKL nuevo');
+    }
+  });
   const [activeId, setActiveId] = useState<string | null>(null);
   const now = useNow(1000);
 
@@ -175,7 +182,7 @@ function PickListCard({
         <span className="cifras text-lg font-semibold">PKL {pickList.number}</span>
         {pickList.status === 'returned' && <Badge tone="danger">Con errores</Badge>}
         {pickList.status === 'validating' && <Badge tone="warning">En validación</Badge>}
-        {pickList.openStop && <Badge tone="warning">En parada</Badge>}
+        {pickList.openStop && <Badge tone="warning">En interrupción</Badge>}
       </div>
       <p className="mt-0.5 truncate text-sm text-muted">
         {pickList.orders.map((o) => o.clientName).join(', ')}
@@ -278,7 +285,7 @@ function PickListWork({
         <div className="entra flex flex-wrap items-center gap-4 border-b border-warning/20 bg-warning-soft px-5 py-4">
           <PauseCircle size={22} className="text-warning" aria-hidden />
           <div className="mr-auto">
-            <p className="font-semibold text-warning">En parada: {pickList.openStop.causeName}</p>
+            <p className="font-semibold text-warning">En interrupción: {pickList.openStop.causeName}</p>
             <p className="cifras text-sm text-warning">
               {formatElapsed(now - new Date(pickList.openStop.startedAt).getTime())}
             </p>
@@ -286,7 +293,7 @@ function PickListWork({
           <Button
             variant="warning"
             loading={busy}
-            onClick={() => run(async () => onChange(await pickListsApi.endStop(token, pickList.id)), 'Parada cerrada')}
+            onClick={() => run(async () => onChange(await pickListsApi.endStop(token, pickList.id)), 'Interrupción cerrada')}
           >
             <PlayCircle size={16} aria-hidden />
             Retomar
@@ -343,7 +350,7 @@ function PickListWork({
             onClick={() => setStopOpen(true)}
           >
             <PauseCircle size={18} aria-hidden />
-            Registrar parada
+            Registrar interrupción
           </Button>
           <p className="min-w-0 flex-1 text-center text-sm text-muted">
             {missing > 0
@@ -375,7 +382,7 @@ function PickListWork({
         onPick={async (causeId, note) => {
           const ok = await run(
             async () => onChange(await pickListsApi.startStop(token, pickList.id, causeId, note || undefined)),
-            'Parada registrada',
+            'Interrupción registrada',
           );
           if (ok) setStopOpen(false);
         }}
@@ -478,7 +485,7 @@ function StopDrawer({
   }, [open]);
 
   return (
-    <Drawer open={open} onClose={onClose} title="Registrar parada" subtitle="Elegí la causa.">
+    <Drawer open={open} onClose={onClose} title="Registrar interrupción" subtitle="Elegí la causa.">
       {causes.length === 0 ? (
         <p className="text-sm text-muted">
           Todavía no hay causas cargadas. Pedile al supervisor que las cargue en Configuración.

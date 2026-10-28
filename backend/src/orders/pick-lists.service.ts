@@ -47,9 +47,10 @@ export class PickListsService {
     private readonly events: EventsGateway,
   ) {}
 
-  private changed(pickListId: string, assigneeId: string | null, type: string) {
-    this.events.emit(ROOMS.board, type, { id: pickListId });
-    if (assigneeId) this.events.emitToAccount(assigneeId, type, { id: pickListId });
+  private changed(pickListId: string, assigneeId: string | null, type: string, number?: number) {
+    const payload = number !== undefined ? { id: pickListId, number } : { id: pickListId };
+    this.events.emit(ROOMS.board, type, payload);
+    if (assigneeId) this.events.emitToAccount(assigneeId, type, payload);
   }
 
   /** Arma un PKL con pedidos sin asignar y se lo asigna a un alistador. */
@@ -77,7 +78,7 @@ export class PickListsService {
       return created!;
     });
 
-    this.changed(pickList.id, assigneeId, 'pick_list.assigned');
+    this.changed(pickList.id, assigneeId, 'pick_list.assigned', pickList.number);
     return pickList;
   }
 
@@ -87,12 +88,14 @@ export class PickListsService {
    */
   async reassign(actorId: string, id: string, assigneeId: string) {
     let previous: string | null = null;
+    let number = 0;
     await this.db.transaction(async (tx) => {
       const pickList = await this.requirePickList(tx, id);
       if (!canReassign(pickList.status)) {
         throw new BadRequestException('Un PKL en validación o terminado no se reasigna');
       }
       await this.requirePicker(tx, assigneeId);
+      number = pickList.number;
 
       const current = await this.currentAssignment(tx, id);
       previous = current?.assigneeId ?? null;
@@ -108,7 +111,7 @@ export class PickListsService {
     });
 
     if (previous) this.events.emitToAccount(previous, 'pick_list.unassigned', { id });
-    this.changed(id, assigneeId, 'pick_list.assigned');
+    this.changed(id, assigneeId, 'pick_list.assigned', number);
   }
 
   /** Los PKL del alistador, con pedidos, líneas y la parada abierta si la hay. */
@@ -231,7 +234,7 @@ export class PickListsService {
         .from(stops)
         .where(and(eq(stops.pickListId, id), isNull(stops.endedAt)))
         .limit(1);
-      if (open) throw new BadRequestException('Ya hay una parada abierta');
+      if (open) throw new BadRequestException('Ya hay una interrupción abierta');
       const [cause] = await tx
         .select({ id: stopCauses.id })
         .from(stopCauses)
@@ -254,8 +257,10 @@ export class PickListsService {
   }
 
   async deliver(accountId: string, id: string) {
+    let number = 0;
     await this.db.transaction(async (tx) => {
-      await this.requireWorkableByAssignee(tx, accountId, id);
+      const pickList = await this.requireWorkableByAssignee(tx, accountId, id);
+      number = pickList.number;
       const lines = await this.linesOf(tx, id);
       if (!canDeliver(lines.map((l) => l.status))) {
         throw new BadRequestException('Faltan líneas por alistar o hay productos sin encontrar');
@@ -264,7 +269,7 @@ export class PickListsService {
       await tx.update(pickLists).set({ status: 'validating' }).where(eq(pickLists.id, id));
       await tx.insert(pickEvents).values({ pickListId: id, accountId, type: 'delivered' });
     });
-    this.changed(id, null, 'pick_list.delivered');
+    this.changed(id, null, 'pick_list.delivered', number);
   }
 
   /**

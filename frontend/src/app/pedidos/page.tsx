@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 import {
   catalogsApi,
@@ -76,6 +76,25 @@ export default function OrdersPage() {
   const [assignSignal, setAssignSignal] = useState(0);
 
   const threshold = data?.settings.urgentThresholdMinutes ?? 120;
+
+  // Un aviso por pedido alcanza: pasado el umbral, no hace falta repetirlo cada segundo.
+  const alerted = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const o of data?.orders ?? []) {
+      if (o.status === 'done' || o.status === 'cancelled' || alerted.current.has(o.id)) continue;
+      if (urgencyOf(o.dueAt, now, threshold) === 'normal') continue;
+      alerted.current.add(o.id);
+      const stuck =
+        o.status === 'unassigned'
+          ? 'sigue sin asignar'
+          : o.status === 'in_progress'
+            ? 'sigue en alisto'
+            : 'sigue en validación';
+      toast.warning(`Pedido ${o.externalId} ${stuck} y se acerca a su entrega`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [now, data?.orders]);
+
   const zoneName = useMemo(() => {
     const all = [...(data?.dispatchZones ?? []), ...(data?.inventoryZones ?? [])];
     return new Map(all.map((z) => [z.id, z.name]));

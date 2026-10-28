@@ -58,7 +58,7 @@ export function StopCausesPanel({ token, canEdit }: { token: string; canEdit: bo
         <EmptyState
           icon={OctagonPause}
           title="Todavía no hay causas"
-          description="Sin causas cargadas el alistador no puede registrar paradas."
+          description="Sin causas cargadas el alistador no puede registrar interrupciones."
           className="mt-5"
         />
       ) : (

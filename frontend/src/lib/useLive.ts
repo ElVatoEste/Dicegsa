@@ -16,11 +16,14 @@ export function useLive<T>(
   load: (token: string) => Promise<T>,
   relevant: (event: RealtimeEvent) => boolean = () => true,
   key = '',
+  onEvent?: (event: RealtimeEvent) => void,
 ) {
   const [data, setData] = useState<T | null>(null);
   const toast = useToast();
   const loader = useRef(load);
   loader.current = load;
+  const onEventRef = useRef(onEvent);
+  onEventRef.current = onEvent;
 
   const reload = useCallback(async () => {
     if (!token) return;
@@ -38,6 +41,7 @@ export function useLive<T>(
   }, [reload]);
 
   const connection = useRealtime(token, (event) => {
+    onEventRef.current?.(event);
     if (relevant(event)) void reload();
   });
 
