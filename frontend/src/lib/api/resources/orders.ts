@@ -2,8 +2,8 @@ import { api, PATHS } from '../client';
 
 export type OrderStatus = 'unassigned' | 'in_progress' | 'validating' | 'done' | 'cancelled';
 export type PickListStatus = 'assigned' | 'picking' | 'validating' | 'returned' | 'done';
-export type LineStatus = 'pending' | 'picked' | 'not_found' | 'cancelled';
-export type LineMark = 'picked' | 'not_found' | 'pending';
+export type LineStatus = 'pending' | 'picked' | 'not_found' | 'cancelled' | 'partial';
+export type LineMark = 'picked' | 'not_found' | 'pending' | 'partial';
 
 export interface OrderLine {
   id: string;
@@ -14,6 +14,20 @@ export interface OrderLine {
   lot: string;
   expiresOn: string | null;
   status: LineStatus;
+  /** Cuántas se alistaron cuando status es 'partial'. */
+  pickedQuantity: number | null;
+  /** Esquela: lote, vencimiento o presentación distintos, autorizados por el supervisor. */
+  substituteLot: string | null;
+  substituteExpiresOn: string | null;
+  substitutePackaging: string | null;
+  substituteNote: string | null;
+}
+
+export interface LineSubstitution {
+  lot?: string;
+  expiresOn?: string;
+  packaging?: string;
+  note?: string;
 }
 
 interface OrderBase {
@@ -56,7 +70,7 @@ export interface NewOrder {
   dueAt: string;
   dispatchZoneId?: string;
   inventoryZoneId?: string;
-  lines: Omit<OrderLine, 'id' | 'orderId' | 'status'>[];
+  lines: { productCode: string; productName: string; quantity: number; lot: string; expiresOn: string | null }[];
 }
 
 export interface OrderPatch {
@@ -120,8 +134,25 @@ export const pickListsApi = {
   reassign: (token: string, id: string, assigneeId: string) =>
     api.post<void>(PATHS.pickLists.reassign(id), { assigneeId }, { token }),
   start: (token: string, id: string) => api.post<PickList>(PATHS.pickLists.start(id), undefined, { token }),
-  markLine: (token: string, id: string, lineId: string, status: LineMark) =>
-    api.post<PickList>(PATHS.pickLists.line(id, lineId), { status }, { token }),
+  markLine: (
+    token: string,
+    id: string,
+    lineId: string,
+    status: LineMark,
+    detail?: { pickedQuantity?: number; substitution?: LineSubstitution },
+  ) =>
+    api.post<PickList>(
+      PATHS.pickLists.line(id, lineId),
+      {
+        status,
+        pickedQuantity: detail?.pickedQuantity,
+        substituteLot: detail?.substitution?.lot,
+        substituteExpiresOn: detail?.substitution?.expiresOn,
+        substitutePackaging: detail?.substitution?.packaging,
+        substituteNote: detail?.substitution?.note,
+      },
+      { token },
+    ),
   startStop: (token: string, id: string, causeId: string, note?: string) =>
     api.post<PickList>(PATHS.pickLists.stops(id), { causeId, note }, { token }),
   endStop: (token: string, id: string) =>

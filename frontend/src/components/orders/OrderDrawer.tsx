@@ -312,6 +312,12 @@ function ZoneSelect({
 }
 
 function LineBadge({ status }: { status: OrderDetail['lines'][number]['status'] }) {
-  const tone = { pending: 'neutral', picked: 'success', not_found: 'danger', cancelled: 'neutral' } as const;
+  const tone = {
+    pending: 'neutral',
+    picked: 'success',
+    not_found: 'danger',
+    cancelled: 'neutral',
+    partial: 'warning',
+  } as const;
   return <Badge tone={tone[status]}>{LINE_STATUS_LABEL[status]}</Badge>;
 }

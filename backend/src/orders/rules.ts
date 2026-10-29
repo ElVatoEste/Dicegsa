@@ -1,5 +1,5 @@
 export type PickListStatus = 'assigned' | 'picking' | 'validating' | 'returned' | 'done';
-export type LineStatus = 'pending' | 'picked' | 'not_found' | 'cancelled';
+export type LineStatus = 'pending' | 'picked' | 'not_found' | 'cancelled' | 'partial';
 export type OrderStatus = 'unassigned' | 'in_progress' | 'validating' | 'done' | 'cancelled';
 
 /**
@@ -20,12 +20,12 @@ export function isWorkable(status: PickListStatus): boolean {
 }
 
 /**
- * Se entrega a validación cuando cada línea está alistada o dada de baja. Una línea
- * no encontrada frena la entrega hasta que inventario la encuentre o televentas la
- * dé de baja.
+ * Se entrega a validación cuando cada línea quedó resuelta: alistada completa,
+ * parcial con faltante ya reportado, o dada de baja. Una línea no encontrada frena
+ * la entrega hasta que inventario la encuentre o televentas la dé de baja.
  */
 export function canDeliver(lines: LineStatus[]): boolean {
-  return lines.length > 0 && lines.every((s) => s === 'picked' || s === 'cancelled');
+  return lines.length > 0 && lines.every((s) => s === 'picked' || s === 'cancelled' || s === 'partial');
 }
 
 /** Con errores el PKL vuelve al mismo alistador; sin errores su ciclo termina. */

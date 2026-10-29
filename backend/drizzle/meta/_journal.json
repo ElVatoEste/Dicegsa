@@ -36,6 +36,13 @@
       "when": 1793248685850,
       "tag": "0004_freezing_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793258281499,
+      "tag": "0005_yielding_joshua_kane",
+      "breakpoints": true
     }
   ]
 }

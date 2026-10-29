@@ -22,6 +22,7 @@ export {
   pickListsApi,
   type LineMark,
   type LineStatus,
+  type LineSubstitution,
   type NewOrder,
   type OrderDetail,
   type OrderLine,

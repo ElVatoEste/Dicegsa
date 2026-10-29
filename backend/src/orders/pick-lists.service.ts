@@ -36,9 +36,18 @@ const MARK_EVENT = {
   picked: 'line_picked',
   not_found: 'line_not_found',
   pending: 'line_reset',
+  partial: 'line_partial',
 } as const;
 
 export type LineMark = keyof typeof MARK_EVENT;
+
+/** Esquela: lote, vencimiento o presentación distintos a los del pedido, autorizados por el supervisor. */
+export interface LineSubstitution {
+  lot: string | null;
+  expiresOn: string | null;
+  packaging: string | null;
+  note: string | null;
+}
 
 @Injectable()
 export class PickListsService {
@@ -208,18 +217,43 @@ export class PickListsService {
     return this.detail(id);
   }
 
-  async markLine(accountId: string, id: string, lineId: string, mark: LineMark) {
+  async markLine(
+    accountId: string,
+    id: string,
+    lineId: string,
+    mark: LineMark,
+    pickedQuantity: number | null,
+    substitution: LineSubstitution | null,
+  ) {
     await this.db.transaction(async (tx) => {
       const pickList = await this.requireWorkableByAssignee(tx, accountId, id);
       const line = await this.requireLineOf(tx, id, lineId);
       if (line.status === 'cancelled') throw new BadRequestException('La línea está dada de baja');
+
+      if (mark === 'partial') {
+        if (!Number.isInteger(pickedQuantity) || pickedQuantity! <= 0 || pickedQuantity! >= line.quantity) {
+          throw new BadRequestException('La cantidad parcial tiene que ser mayor que cero y menor que la pedida');
+        }
+      }
 
       // Marcar sin haber empezado arranca el PKL: el cronómetro no puede quedar sin inicio.
       if (pickList.status === 'assigned') {
         await tx.update(pickLists).set({ status: 'picking' }).where(eq(pickLists.id, id));
         await tx.insert(pickEvents).values({ pickListId: id, accountId, type: 'started' });
       }
-      await tx.update(orderLines).set({ status: mark }).where(eq(orderLines.id, lineId));
+      // La esquela solo aplica cuando queda algo alistado; deshacer o "no está" la borran.
+      const sub = (mark === 'picked' || mark === 'partial') && substitution ? substitution : null;
+      await tx
+        .update(orderLines)
+        .set({
+          status: mark,
+          pickedQuantity: mark === 'partial' ? pickedQuantity : null,
+          substituteLot: sub?.lot || null,
+          substituteExpiresOn: sub?.expiresOn || null,
+          substitutePackaging: sub?.packaging || null,
+          substituteNote: sub?.note || null,
+        })
+        .where(eq(orderLines.id, lineId));
       await tx.insert(pickEvents).values({ pickListId: id, lineId, accountId, type: MARK_EVENT[mark] });
     });
     this.changed(id, null, 'pick_list.line_marked');
@@ -381,7 +415,7 @@ export class PickListsService {
 
   private async requireLineOf(tx: Db | Tx, pickListId: string, lineId: string) {
     const [line] = await tx
-      .select({ id: orderLines.id, status: orderLines.status })
+      .select({ id: orderLines.id, status: orderLines.status, quantity: orderLines.quantity })
       .from(orderLines)
       .innerJoin(orders, eq(orders.id, orderLines.orderId))
       .where(and(eq(orderLines.id, lineId), eq(orders.pickListId, pickListId)))

@@ -8,6 +8,7 @@ export const pickEventType = pgEnum('pick_event_type', [
   'line_picked',
   'line_not_found',
   'line_reset',
+  'line_partial',
   'delivered',
   'validated',
   'returned',

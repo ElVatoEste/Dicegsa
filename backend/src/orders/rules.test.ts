@@ -29,6 +29,10 @@ describe('entrega a validación', () => {
     expect(canDeliver(['picked', 'cancelled'])).toBe(true);
   });
 
+  test('una línea parcial con el faltante reportado no frena la entrega', () => {
+    expect(canDeliver(['picked', 'partial'])).toBe(true);
+  });
+
   test('una línea pendiente o no encontrada frena la entrega', () => {
     expect(canDeliver(['picked', 'pending'])).toBe(false);
     expect(canDeliver(['picked', 'not_found'])).toBe(false);

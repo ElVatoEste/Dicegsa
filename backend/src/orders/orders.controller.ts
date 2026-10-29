@@ -14,7 +14,7 @@ import type { TokenPayload } from '../auth/access';
 import { requireText } from '../auth/dto';
 import { JwtGuard } from '../auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
-import { optionalText, parseOrder, requireDate, requirePositiveInt } from './dto';
+import { optionalPositiveInt, optionalText, parseOrder, parseSubstitution, requireDate, requirePositiveInt } from './dto';
 import { OrdersService, type OrderPatch } from './orders.service';
 import { PickListsService, type LineMark } from './pick-lists.service';
 
@@ -138,10 +138,14 @@ export class PickListsController {
   @Roles('operator')
   markLine(@Req() req: Req, @Param('id') id: string, @Param('lineId') lineId: string, @Body() body: any) {
     const mark = body?.status as LineMark;
-    if (!['picked', 'not_found', 'pending'].includes(mark)) {
-      throw new BadRequestException('El estado tiene que ser picked, not_found o pending');
+    if (!['picked', 'not_found', 'pending', 'partial'].includes(mark)) {
+      throw new BadRequestException('El estado tiene que ser picked, not_found, partial o pending');
     }
-    return this.pickLists.markLine(req.account.sub, id, lineId, mark);
+    const pickedQuantity = optionalPositiveInt(body?.pickedQuantity, 'pickedQuantity');
+    if (mark === 'partial' && pickedQuantity === null) {
+      throw new BadRequestException('Una línea parcial necesita la cantidad alistada');
+    }
+    return this.pickLists.markLine(req.account.sub, id, lineId, mark, pickedQuantity, parseSubstitution(body));
   }
 
   @Post(':id/stops')

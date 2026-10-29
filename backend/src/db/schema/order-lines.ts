@@ -1,7 +1,7 @@
 import { date, integer, pgEnum, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 import { orders } from './orders';
 
-export const lineStatus = pgEnum('line_status', ['pending', 'picked', 'not_found', 'cancelled']);
+export const lineStatus = pgEnum('line_status', ['pending', 'picked', 'not_found', 'cancelled', 'partial']);
 
 /** Un producto distinto del pedido. Las unidades del pedido son la suma de cantidades. */
 export const orderLines = pgTable('order_lines', {
@@ -15,4 +15,11 @@ export const orderLines = pgTable('order_lines', {
   lot: text('lot').notNull(),
   expiresOn: date('expires_on'),
   status: lineStatus('status').notNull().default('pending'),
+  /** Cuántas se alistaron cuando el estado es 'partial'; el pedido sigue pidiendo `quantity`. */
+  pickedQuantity: integer('picked_quantity'),
+  /** Esquela: lote, vencimiento o presentación distintos a los del pedido, autorizados por el supervisor. */
+  substituteLot: text('substitute_lot'),
+  substituteExpiresOn: date('substitute_expires_on'),
+  substitutePackaging: text('substitute_packaging'),
+  substituteNote: text('substitute_note'),
 });

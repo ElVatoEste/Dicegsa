@@ -80,12 +80,13 @@ export class MetricsService {
         accountId: pickEvents.accountId,
         lineId: pickEvents.lineId,
         quantity: orderLines.quantity,
+        pickedQuantity: orderLines.pickedQuantity,
         status: orderLines.status,
         at: pickEvents.at,
       })
       .from(pickEvents)
       .innerJoin(orderLines, eq(orderLines.id, pickEvents.lineId))
-      .where(and(eq(pickEvents.type, 'line_picked'), inPeriod(pickEvents.at)));
+      .where(and(inArray(pickEvents.type, ['line_picked', 'line_partial']), inPeriod(pickEvents.at)));
 
     const stopRows = await this.db
       .select({
@@ -192,7 +193,7 @@ export class MetricsService {
   private buildRow(
     person: { id: string; fullName: string | null; accountName: string; incentiveBase: number },
     events: { accountId: string; at: Date }[],
-    picked: { accountId: string; lineId: string | null; quantity: number; status: string; at: Date }[],
+    picked: { accountId: string; lineId: string | null; quantity: number; pickedQuantity: number | null; status: string; at: Date }[],
     stopRows: { accountId: string; cause: string; attributable: boolean; startedAt: Date; endedAt: Date | null }[],
     errors: { pickerId: string; units: number; type: string; createdAt: Date }[],
     settings: MetricSettings,
@@ -204,7 +205,7 @@ export class MetricsService {
     // dadas de baja no se le exigen.
     const lines = new Map<string, number>();
     for (const p of picked) {
-      if (p.accountId === person.id && p.lineId && p.status !== 'cancelled') lines.set(p.lineId, p.quantity);
+      if (p.accountId === person.id && p.lineId && p.status !== 'cancelled') lines.set(p.lineId, p.pickedQuantity ?? p.quantity);
     }
 
     const own = stopRows.filter((s) => s.accountId === person.id);

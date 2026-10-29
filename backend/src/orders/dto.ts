@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { requireText } from '../auth/dto';
+import type { LineSubstitution } from './pick-lists.service';
 
 export interface LineInput {
   productCode: string;
@@ -44,6 +45,11 @@ export function requirePositiveInt(value: unknown, field: string): number {
   return value;
 }
 
+export function optionalPositiveInt(value: unknown, field: string): number | null {
+  if (value === undefined || value === null) return null;
+  return requirePositiveInt(value, field);
+}
+
 /** Fecha de vencimiento del lote. Se guarda como día, sin hora. */
 function optionalDay(value: unknown, field: string): string | null {
   const text = optionalText(value, field);
@@ -52,6 +58,16 @@ function optionalDay(value: unknown, field: string): string | null {
     throw new BadRequestException(`El campo ${field} tiene que tener el formato AAAA-MM-DD`);
   }
   return text;
+}
+
+/** Esquela de sustitución: lote, vencimiento o presentación distintos, autorizados por el supervisor. */
+export function parseSubstitution(body: any): LineSubstitution | null {
+  const lot = optionalText(body?.substituteLot, 'substituteLot');
+  const expiresOn = optionalDay(body?.substituteExpiresOn, 'substituteExpiresOn');
+  const packaging = optionalText(body?.substitutePackaging, 'substitutePackaging');
+  const note = optionalText(body?.substituteNote, 'substituteNote');
+  if (!lot && !expiresOn && !packaging && !note) return null;
+  return { lot, expiresOn, packaging, note };
 }
 
 export function parseOrder(body: any): OrderInput {

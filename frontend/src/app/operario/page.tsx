@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   Check,
+  ClipboardEdit,
   ClipboardList,
   LogOut,
   PackageCheck,
@@ -18,6 +19,7 @@ import {
   pickListsApi,
   stopCausesApi,
   type LineMark,
+  type LineSubstitution,
   type OrderLine,
   type PickList,
   type Settings,
@@ -219,6 +221,7 @@ function PickListWork({
   onDelivered: () => void;
 }) {
   const [stopOpen, setStopOpen] = useState(false);
+  const [diffLine, setDiffLine] = useState<OrderLine | null>(null);
   const [pendingLine, setPendingLine] = useState<string | null>(null);
   const { busy, run } = useAction();
 
@@ -226,8 +229,10 @@ function PickListWork({
   const live = lines.filter((l) => l.status !== 'cancelled');
   const picked = live.filter((l) => l.status === 'picked').length;
   const missing = live.filter((l) => l.status === 'not_found').length;
+  // Alistada completa o parcial con el faltante ya reportado cuentan como resueltas.
+  const resolved = live.filter((l) => l.status === 'picked' || l.status === 'partial').length;
   const readOnly = pickList.status === 'validating';
-  const canDeliver = !readOnly && live.length > 0 && picked === live.length;
+  const canDeliver = !readOnly && live.length > 0 && resolved === live.length;
   const errorsByLine = useMemo(() => {
     const map = new Map<string, PickList['errors']>();
     for (const e of pickList.errors) map.set(e.lineId, [...(map.get(e.lineId) ?? []), e]);
@@ -252,6 +257,21 @@ function PickListWork({
     setPendingLine(null);
   }
 
+  async function markDifference(line: OrderLine, pickedQuantity: number, substitution: LineSubstitution | null) {
+    const status: LineMark = pickedQuantity <= 0 ? 'not_found' : pickedQuantity >= line.quantity ? 'picked' : 'partial';
+    setPendingLine(line.id);
+    const ok = await run(async () => {
+      onChange(
+        await pickListsApi.markLine(token, pickList.id, line.id, status, {
+          pickedQuantity: status === 'partial' ? pickedQuantity : undefined,
+          substitution: substitution ?? undefined,
+        }),
+      );
+    });
+    setPendingLine(null);
+    return ok;
+  }
+
   return (
     <section className="rounded-2xl border border-line bg-surface">
       <header className="border-b border-line p-5">
@@ -274,9 +294,9 @@ function PickListWork({
           )}
         </div>
         <div className="mt-4 flex items-center gap-4">
-          <Progress label="Líneas alistadas" value={live.length ? picked / live.length : 0} className="h-3 flex-1" tone={canDeliver ? 'success' : 'brand'} />
+          <Progress label="Líneas alistadas" value={live.length ? resolved / live.length : 0} className="h-3 flex-1" tone={canDeliver ? 'success' : 'brand'} />
           <span className="cifras text-sm font-semibold">
-            {picked}/{live.length}
+            {resolved}/{live.length}
           </span>
         </div>
       </header>
@@ -334,6 +354,7 @@ function PickListWork({
                   errors={errorsByLine.get(line.id)}
                   disabled={readOnly || pendingLine === line.id}
                   onMark={(status) => mark(line, status)}
+                  onDifference={() => setDiffLine(line)}
                 />
               ))}
             </ul>
@@ -357,7 +378,7 @@ function PickListWork({
               ? `${missing} ${missing === 1 ? 'producto no encontrado' : 'productos no encontrados'}: esperá a inventario o a la baja de televentas.`
               : canDeliver
                 ? 'Todo alistado.'
-                : `Faltan ${live.length - picked} líneas.`}
+                : `Faltan ${live.length - resolved} líneas.`}
           </p>
           <Button
             size="lg"
@@ -387,6 +408,15 @@ function PickListWork({
           if (ok) setStopOpen(false);
         }}
       />
+
+      <DifferenceDrawer
+        line={diffLine}
+        onClose={() => setDiffLine(null)}
+        onSave={async (pickedQuantity, substitution) => {
+          if (!diffLine) return;
+          if (await markDifference(diffLine, pickedQuantity, substitution)) setDiffLine(null);
+        }}
+      />
     </section>
   );
 }
@@ -396,11 +426,13 @@ function LineRow({
   errors,
   disabled,
   onMark,
+  onDifference,
 }: {
   line: OrderLine;
   errors?: PickList['errors'];
   disabled: boolean;
   onMark: (status: LineMark) => void;
+  onDifference: () => void;
 }) {
   if (line.status === 'cancelled') {
     return (
@@ -413,15 +445,25 @@ function LineRow({
 
   const picked = line.status === 'picked';
   const missing = line.status === 'not_found';
+  const partial = line.status === 'partial';
+  const hasSubstitution = !!(line.substituteLot || line.substituteExpiresOn || line.substitutePackaging || line.substituteNote);
   return (
     <li
       className={cn(
         'flex flex-wrap items-center gap-4 rounded-xl border px-4 py-3 transition-[background-color,border-color] duration-200',
-        picked ? 'border-success/25 bg-success-soft/60' : missing ? 'border-danger/30 bg-danger-soft/60' : errors ? 'border-danger/40' : 'border-line',
+        picked
+          ? 'border-success/25 bg-success-soft/60'
+          : missing
+            ? 'border-danger/30 bg-danger-soft/60'
+            : partial
+              ? 'border-warning/30 bg-warning-soft/60'
+              : errors
+                ? 'border-danger/40'
+                : 'border-line',
       )}
     >
       <span className={cn('cifras w-14 text-center text-2xl font-semibold', picked && 'text-success')}>
-        {line.quantity}
+        {partial ? `${line.pickedQuantity}/${line.quantity}` : line.quantity}
       </span>
       <div className="min-w-0 flex-1">
         <p className={cn('font-medium', picked && 'text-muted')}>{line.productName}</p>
@@ -435,9 +477,19 @@ function LineRow({
           </p>
         ))}
         {missing && <p className="mt-1 text-xs font-medium text-danger">Reportado a inventario</p>}
+        {partial && <p className="mt-1 text-xs font-medium text-warning">Faltante reportado, no cuenta como error</p>}
+        {hasSubstitution && (
+          <p className="mt-1 text-xs font-medium text-warning">
+            Cambio autorizado
+            {line.substituteLot && ` · lote ${line.substituteLot}`}
+            {line.substituteExpiresOn && ` · vence ${formatDay(line.substituteExpiresOn)}`}
+            {line.substitutePackaging && ` · ${line.substitutePackaging}`}
+            {line.substituteNote && ` · ${line.substituteNote}`}
+          </p>
+        )}
       </div>
       <div className="flex items-center gap-2">
-        {picked || missing ? (
+        {picked || missing || partial ? (
           <>
             {missing && (
               <Button size="md" variant="secondary" disabled={disabled} onClick={() => onMark('picked')}>
@@ -452,6 +504,9 @@ function LineRow({
           </>
         ) : (
           <>
+            <Button size="md" variant="ghost" disabled={disabled} onClick={onDifference} aria-label="Reportar diferencia">
+              <ClipboardEdit size={16} aria-hidden />
+            </Button>
             <Button size="md" variant="secondary" disabled={disabled} onClick={() => onMark('not_found')}>
               <SearchX size={16} aria-hidden />
               No está
@@ -464,6 +519,103 @@ function LineRow({
         )}
       </div>
     </li>
+  );
+}
+
+/**
+ * Cuando lo que se alistó no coincide con el pedido: menos cantidad de la pedida,
+ * o un lote/vence/presentación distinto autorizado por el supervisor.
+ */
+function DifferenceDrawer({
+  line,
+  onClose,
+  onSave,
+}: {
+  line: OrderLine | null;
+  onClose: () => void;
+  onSave: (pickedQuantity: number, substitution: LineSubstitution | null) => void;
+}) {
+  const [quantity, setQuantity] = useState(0);
+  const [lot, setLot] = useState('');
+  const [expiresOn, setExpiresOn] = useState('');
+  const [packaging, setPackaging] = useState('');
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (!line) return;
+    setQuantity(line.pickedQuantity ?? line.quantity);
+    setLot(line.substituteLot ?? '');
+    setExpiresOn(line.substituteExpiresOn ?? '');
+    setPackaging(line.substitutePackaging ?? '');
+    setNote(line.substituteNote ?? '');
+  }, [line]);
+
+  return (
+    <Drawer
+      open={line !== null}
+      onClose={onClose}
+      title={line ? `Diferencia en ${line.productName}` : ''}
+      subtitle="Cantidad distinta a la pedida, o lote/vence/presentación autorizados por el supervisor."
+    >
+      {line && (
+        <div className="space-y-5">
+          <label className="block text-sm font-medium" htmlFor="pickedQuantity">
+            Cantidad alistada <span className="font-normal text-muted">(de {line.quantity})</span>
+          </label>
+          <Input
+            id="pickedQuantity"
+            type="number"
+            min={0}
+            max={line.quantity}
+            value={quantity}
+            onChange={(e) => setQuantity(Math.max(0, Math.min(line.quantity, Number(e.target.value) || 0)))}
+          />
+
+          <div>
+            <p className="text-sm font-medium">Esquela del supervisor</p>
+            <p className="text-xs text-muted">Dejá en blanco lo que no cambió.</p>
+          </div>
+          <label className="block" htmlFor="substituteLot">
+            <span className="text-xs font-semibold text-muted">Lote distinto</span>
+            <Input id="substituteLot" value={lot} onChange={(e) => setLot(e.target.value)} placeholder={line.lot} className="mt-1.5" />
+          </label>
+          <label className="block" htmlFor="substituteExpiresOn">
+            <span className="text-xs font-semibold text-muted">Vence distinto</span>
+            <Input
+              id="substituteExpiresOn"
+              type="date"
+              value={expiresOn}
+              onChange={(e) => setExpiresOn(e.target.value)}
+              className="mt-1.5"
+            />
+          </label>
+          <label className="block" htmlFor="substitutePackaging">
+            <span className="text-xs font-semibold text-muted">Presentación distinta</span>
+            <Input
+              id="substitutePackaging"
+              value={packaging}
+              onChange={(e) => setPackaging(e.target.value)}
+              placeholder="Caja, unidad…"
+              className="mt-1.5"
+            />
+          </label>
+          <label className="block" htmlFor="substituteNote">
+            <span className="text-xs font-semibold text-muted">Nota</span>
+            <Input id="substituteNote" value={note} onChange={(e) => setNote(e.target.value)} className="mt-1.5" />
+          </label>
+
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() =>
+              onSave(quantity, lot || expiresOn || packaging || note ? { lot, expiresOn, packaging, note } : null)
+            }
+          >
+            Guardar
+          </Button>
+        </div>
+      )}
+    </Drawer>
   );
 }
 

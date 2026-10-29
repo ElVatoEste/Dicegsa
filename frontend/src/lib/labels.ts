@@ -73,6 +73,7 @@ export const LINE_STATUS_LABEL: Record<LineStatus, string> = {
   picked: 'Alistada',
   not_found: 'No encontrada',
   cancelled: 'Dada de baja',
+  partial: 'Parcial',
 };
 
 export const CATALOG_LABEL: Record<CatalogKind, { title: string; one: string; hint: string }> = {

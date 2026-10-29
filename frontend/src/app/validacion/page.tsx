@@ -207,7 +207,9 @@ function Review({
                     )}
                   >
                     <div className="flex flex-wrap items-center gap-4">
-                      <span className="cifras w-12 text-center text-xl font-semibold">{line.quantity}</span>
+                      <span className="cifras w-12 text-center text-xl font-semibold">
+                        {line.status === 'partial' ? `${line.pickedQuantity}/${line.quantity}` : line.quantity}
+                      </span>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium">{line.productName}</p>
                         <p className="cifras mt-0.5 flex items-center gap-1.5 text-xs text-muted">
@@ -219,6 +221,18 @@ function Review({
                             </span>
                           )}
                         </p>
+                        {line.status === 'partial' && (
+                          <p className="mt-1 text-xs font-medium text-warning">Faltante reportado, no cuenta como error</p>
+                        )}
+                        {(line.substituteLot || line.substituteExpiresOn || line.substitutePackaging || line.substituteNote) && (
+                          <p className="mt-1 text-xs font-medium text-warning">
+                            Cambio autorizado
+                            {line.substituteLot && ` · lote ${line.substituteLot}`}
+                            {line.substituteExpiresOn && ` · vence ${formatDay(line.substituteExpiresOn)}`}
+                            {line.substitutePackaging && ` · ${line.substitutePackaging}`}
+                            {line.substituteNote && ` · ${line.substituteNote}`}
+                          </p>
+                        )}
                       </div>
                       {canValidate && editing !== line.id && (
                         <Button variant="secondary" size="sm" onClick={() => setEditing(line.id)}>
