@@ -21,3 +21,10 @@ export function requireText(value: unknown, field: string): string {
   }
   return value;
 }
+
+export function requireNonNegativeNumber(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new BadRequestException(`El campo ${field} tiene que ser un número mayor o igual a cero`);
+  }
+  return value;
+}

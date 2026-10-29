@@ -52,6 +52,7 @@ export const DETAIL_LABEL: Record<string, string> = {
   to: 'a',
   fullName: 'nombre',
   floorRole: 'en el piso',
+  incentiveBase: 'incentivo mensual',
 };
 
 /** Los valores del detalle que son enums del backend también se muestran traducidos. */

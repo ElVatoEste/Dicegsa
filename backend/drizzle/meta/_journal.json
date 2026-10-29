@@ -29,6 +29,13 @@
       "when": 1790203705962,
       "tag": "0003_hot_the_twelve",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793248685850,
+      "tag": "0004_freezing_boomer",
+      "breakpoints": true
     }
   ]
 }

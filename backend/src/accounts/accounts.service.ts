@@ -41,12 +41,18 @@ export class AccountsService {
   }
 
   /** El perfil de colaborador viene en null para las cuentas que no trabajan en el piso. */
-  list() {
-    return this.db
-      .select({ ...PUBLIC_FIELDS, fullName: workers.fullName, floorRole: workers.floorRole })
+  async list() {
+    const rows = await this.db
+      .select({
+        ...PUBLIC_FIELDS,
+        fullName: workers.fullName,
+        floorRole: workers.floorRole,
+        incentiveBase: workers.incentiveBase,
+      })
       .from(accounts)
       .leftJoin(workers, eq(workers.accountId, accounts.id))
       .orderBy(accounts.accountName);
+    return rows.map((r) => ({ ...r, incentiveBase: r.incentiveBase === null ? null : Number(r.incentiveBase) }));
   }
 
   /** Devuelve la contraseña inicial en claro una sola vez: es lo que el administrador entrega en mano. */
@@ -178,27 +184,29 @@ export class AccountsService {
   }
 
   /** Alta o edición del perfil de colaborador, que es a quien se le calcula el OLE. */
-  async upsertWorker(actorId: string, accountId: string, fullName: string, floorRole: FloorRole) {
+  async upsertWorker(actorId: string, accountId: string, fullName: string, floorRole: FloorRole, incentiveBase: number) {
     const name = fullName.trim();
+    // numeric llega y sale como string del driver; se convierte en el borde del servicio.
+    const incentiveBaseText = incentiveBase.toFixed(2);
     const worker = await this.db.transaction(async (tx) => {
       await this.requireExisting(tx, accountId);
       const [saved] = await tx
         .insert(workers)
-        .values({ accountId, fullName: name, floorRole })
-        .onConflictDoUpdate({ target: workers.accountId, set: { fullName: name, floorRole } })
+        .values({ accountId, fullName: name, floorRole, incentiveBase: incentiveBaseText })
+        .onConflictDoUpdate({ target: workers.accountId, set: { fullName: name, floorRole, incentiveBase: incentiveBaseText } })
         .returning();
 
       await tx.insert(adminEvents).values({
         actorId,
         targetAccountId: accountId,
         action: 'update_worker',
-        details: { fullName: name, floorRole },
+        details: { fullName: name, floorRole, incentiveBase },
       });
       return saved!;
     });
 
-    this.events.emit(ROOMS.accounts, 'account.worker_updated', worker);
-    return worker;
+    this.events.emit(ROOMS.accounts, 'account.worker_updated', { ...worker, incentiveBase: Number(worker.incentiveBase) });
+    return { ...worker, incentiveBase: Number(worker.incentiveBase) };
   }
 
   auditLog(limit = 200) {

@@ -14,6 +14,8 @@ export interface Account {
   /** Perfil de colaborador; null en las cuentas que no trabajan en el piso. */
   fullName: string | null;
   floorRole: FloorRole | null;
+  /** Monto mensual de incentivo; null en las cuentas sin perfil de colaborador. */
+  incentiveBase: number | null;
 }
 
 export type AdminAction =
@@ -76,8 +78,8 @@ export const accountsApi = {
   changeRole: (token: string, id: string, role: SystemRole) =>
     api.patch<Account>(PATHS.accounts.role(id), { role }, { token }),
 
-  saveWorker: (token: string, id: string, fullName: string, floorRole: FloorRole) =>
-    api.put<unknown>(PATHS.accounts.worker(id), { fullName, floorRole }, { token }),
+  saveWorker: (token: string, id: string, fullName: string, floorRole: FloorRole, incentiveBase: number) =>
+    api.put<unknown>(PATHS.accounts.worker(id), { fullName, floorRole, incentiveBase }, { token }),
 
   setActive: (token: string, id: string, active: boolean) =>
     api.post<Account>(

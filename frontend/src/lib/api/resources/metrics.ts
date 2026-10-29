@@ -26,6 +26,9 @@ export interface WorkerRow {
   };
   /** Null cuando no tuvo actividad en el período. */
   metrics: Factors | null;
+  incentiveBase: number;
+  /** OLE del período × incentiveBase; null si no tuvo actividad. */
+  incentivePay: number | null;
   stopsByCause: { cause: string; attributable: boolean; minutes: number; count: number }[];
   errorsByType: { type: string; count: number; units: number }[];
 }
@@ -50,6 +53,7 @@ export interface MetricsReport {
     quality: number | null;
     ole: number | null;
   };
+  series: { day: string; ole: number | null }[];
   workers: WorkerRow[];
 }
 

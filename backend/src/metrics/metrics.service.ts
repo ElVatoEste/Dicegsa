@@ -24,6 +24,15 @@ function localDay(at: Date): string {
   return new Date(at.getTime() - 6 * 3_600_000).toISOString().slice(0, 10);
 }
 
+/** AAAA-MM-DD de cada día entre `from` y `to`, ambos incluidos. */
+export function enumerateDays(from: string, to: string): string[] {
+  const days: string[] = [];
+  for (let d = new Date(`${from}T00:00:00Z`); d <= new Date(`${to}T00:00:00Z`); d = new Date(d.getTime() + 86_400_000)) {
+    days.push(d.toISOString().slice(0, 10));
+  }
+  return days;
+}
+
 export interface Period {
   from: string;
   to: string;
@@ -46,11 +55,18 @@ export class MetricsService {
     const end = new Date(new Date(`${to}T00:00:00${UTC_OFFSET}`).getTime() + 86_400_000);
     const settings = (await this.catalogs.readSettings()) as unknown as MetricSettings;
 
-    const people = await this.db
-      .select({ id: accounts.id, accountName: accounts.accountName, fullName: workers.fullName })
+    const peopleRows = await this.db
+      .select({
+        id: accounts.id,
+        accountName: accounts.accountName,
+        fullName: workers.fullName,
+        incentiveBase: workers.incentiveBase,
+      })
       .from(accounts)
       .innerJoin(workers, eq(workers.accountId, accounts.id))
       .where(eq(accounts.role, 'operator'));
+    // numeric llega como string del driver de Postgres.
+    const people = peopleRows.map((p) => ({ ...p, incentiveBase: Number(p.incentiveBase) }));
 
     const inPeriod = (col: AnyPgColumn) => and(gte(col, start), lt(col, end));
 
@@ -65,6 +81,7 @@ export class MetricsService {
         lineId: pickEvents.lineId,
         quantity: orderLines.quantity,
         status: orderLines.status,
+        at: pickEvents.at,
       })
       .from(pickEvents)
       .innerJoin(orderLines, eq(orderLines.id, pickEvents.lineId))
@@ -83,7 +100,12 @@ export class MetricsService {
       .where(inPeriod(stops.startedAt));
 
     const errors = await this.db
-      .select({ pickerId: validationErrors.pickerId, units: validationErrors.units, type: catalogEntries.name })
+      .select({
+        pickerId: validationErrors.pickerId,
+        units: validationErrors.units,
+        type: catalogEntries.name,
+        createdAt: validationErrors.createdAt,
+      })
       .from(validationErrors)
       .innerJoin(catalogEntries, eq(catalogEntries.id, validationErrors.errorTypeId))
       .where(inPeriod(validationErrors.createdAt));
@@ -102,60 +124,28 @@ export class MetricsService {
       : 0;
 
     const now = Date.now();
-    const rows = people.map((person) => {
-      const days = new Set(events.filter((e) => e.accountId === person.id).map((e) => localDay(e.at))).size;
+    const rows = people.map((person) => this.buildRow(person, events, picked, stopRows, errors, settings, now));
 
-      // Una línea marcada, desmarcada y vuelta a marcar cuenta una sola vez; las
-      // dadas de baja no se le exigen.
-      const lines = new Map<string, number>();
-      for (const p of picked) {
-        if (p.accountId === person.id && p.lineId && p.status !== 'cancelled') lines.set(p.lineId, p.quantity);
-      }
-
-      const own = stopRows.filter((s) => s.accountId === person.id);
-      const byCause = new Map<string, { cause: string; attributable: boolean; minutes: number; count: number }>();
-      let excusedStopMs = 0;
-      let ownStopMs = 0;
-      for (const s of own) {
-        const ms = (s.endedAt?.getTime() ?? now) - s.startedAt.getTime();
-        if (s.attributable) ownStopMs += ms;
-        else excusedStopMs += ms;
-        const entry = byCause.get(s.cause) ?? { cause: s.cause, attributable: s.attributable, minutes: 0, count: 0 };
-        entry.minutes += ms / 60_000;
-        entry.count += 1;
-        byCause.set(s.cause, entry);
-      }
-
-      const mine = errors.filter((e) => e.pickerId === person.id);
-      const byType = new Map<string, { type: string; count: number; units: number }>();
-      for (const e of mine) {
-        const entry = byType.get(e.type) ?? { type: e.type, count: 0, units: 0 };
-        entry.count += 1;
-        entry.units += e.units;
-        byType.set(e.type, entry);
-      }
-
-      const activity: WorkerActivity = {
-        days,
-        lines: lines.size,
-        units: [...lines.values()].reduce((a, b) => a + b, 0),
-        excusedStopMs,
-        ownStopMs,
-        errorCount: mine.length,
-        errorUnits: mine.reduce((a, e) => a + e.units, 0),
-      };
-
-      return {
-        id: person.id,
-        name: person.fullName,
-        accountName: person.accountName,
-        activity: { ...activity, excusedStopMinutes: Math.round(excusedStopMs / 60_000), ownStopMinutes: Math.round(ownStopMs / 60_000) },
-        metrics: computeWorkerMetrics(activity, settings),
-        stopsByCause: [...byCause.values()]
-          .map((c) => ({ ...c, minutes: Math.round(c.minutes) }))
-          .sort((a, b) => b.minutes - a.minutes),
-        errorsByType: [...byType.values()],
-      };
+    // Un punto de OLE por día: promedio de quienes tuvieron actividad ese día en
+    // particular, con las mismas filas ya traídas y sin volver a consultar la base.
+    const series = enumerateDays(from, to).map((day) => {
+      const dayRows = people
+        .map((person) =>
+          this.buildRow(
+            person,
+            events.filter((e) => localDay(e.at) === day),
+            picked.filter((p) => localDay(p.at) === day),
+            stopRows.filter((s) => localDay(s.startedAt) === day),
+            errors.filter((e) => localDay(e.createdAt) === day),
+            settings,
+            now,
+          ),
+        )
+        .filter((r) => r.metrics);
+      const ole = dayRows.length
+        ? Math.round((dayRows.reduce((a, r) => a + r.metrics!.ole, 0) / dayRows.length) * 1000) / 1000
+        : null;
+      return { day, ole };
     });
 
     // Solo las interrupciones que le pesan al alistador explican la caída de disponibilidad.
@@ -193,7 +183,77 @@ export class MetricsService {
         quality: avg((m) => m.quality),
         ole: avg((m) => m.ole),
       },
+      series,
       workers: rows.sort((a, b) => (b.metrics?.ole ?? -1) - (a.metrics?.ole ?? -1)),
+    };
+  }
+
+  /** Métricas de un colaborador a partir de las filas ya filtradas al período (o día) que corresponda. */
+  private buildRow(
+    person: { id: string; fullName: string | null; accountName: string; incentiveBase: number },
+    events: { accountId: string; at: Date }[],
+    picked: { accountId: string; lineId: string | null; quantity: number; status: string; at: Date }[],
+    stopRows: { accountId: string; cause: string; attributable: boolean; startedAt: Date; endedAt: Date | null }[],
+    errors: { pickerId: string; units: number; type: string; createdAt: Date }[],
+    settings: MetricSettings,
+    now: number,
+  ) {
+    const days = new Set(events.filter((e) => e.accountId === person.id).map((e) => localDay(e.at))).size;
+
+    // Una línea marcada, desmarcada y vuelta a marcar cuenta una sola vez; las
+    // dadas de baja no se le exigen.
+    const lines = new Map<string, number>();
+    for (const p of picked) {
+      if (p.accountId === person.id && p.lineId && p.status !== 'cancelled') lines.set(p.lineId, p.quantity);
+    }
+
+    const own = stopRows.filter((s) => s.accountId === person.id);
+    const byCause = new Map<string, { cause: string; attributable: boolean; minutes: number; count: number }>();
+    let excusedStopMs = 0;
+    let ownStopMs = 0;
+    for (const s of own) {
+      const ms = (s.endedAt?.getTime() ?? now) - s.startedAt.getTime();
+      if (s.attributable) ownStopMs += ms;
+      else excusedStopMs += ms;
+      const entry = byCause.get(s.cause) ?? { cause: s.cause, attributable: s.attributable, minutes: 0, count: 0 };
+      entry.minutes += ms / 60_000;
+      entry.count += 1;
+      byCause.set(s.cause, entry);
+    }
+
+    const mine = errors.filter((e) => e.pickerId === person.id);
+    const byType = new Map<string, { type: string; count: number; units: number }>();
+    for (const e of mine) {
+      const entry = byType.get(e.type) ?? { type: e.type, count: 0, units: 0 };
+      entry.count += 1;
+      entry.units += e.units;
+      byType.set(e.type, entry);
+    }
+
+    const activity: WorkerActivity = {
+      days,
+      lines: lines.size,
+      units: [...lines.values()].reduce((a, b) => a + b, 0),
+      excusedStopMs,
+      ownStopMs,
+      errorCount: mine.length,
+      errorUnits: mine.reduce((a, e) => a + e.units, 0),
+    };
+
+    const metrics = computeWorkerMetrics(activity, settings);
+    return {
+      id: person.id,
+      name: person.fullName,
+      accountName: person.accountName,
+      activity: { ...activity, excusedStopMinutes: Math.round(excusedStopMs / 60_000), ownStopMinutes: Math.round(ownStopMs / 60_000) },
+      metrics,
+      incentiveBase: person.incentiveBase,
+      // El incentivo del período se paga sobre el OLE que efectivamente rindió.
+      incentivePay: metrics ? Math.round(metrics.ole * person.incentiveBase * 100) / 100 : null,
+      stopsByCause: [...byCause.values()]
+        .map((c) => ({ ...c, minutes: Math.round(c.minutes) }))
+        .sort((a, b) => b.minutes - a.minutes),
+      errorsByType: [...byType.values()],
     };
   }
 }

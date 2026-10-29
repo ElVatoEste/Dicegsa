@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { SystemRole, TokenPayload } from '../auth/access';
-import { requireText } from '../auth/dto';
+import { requireNonNegativeNumber, requireText } from '../auth/dto';
 import { JwtGuard } from '../auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
 import { floorRole } from '../db/schema';
@@ -77,7 +77,7 @@ export class AccountsController {
   upsertWorker(
     @Req() req: { account: TokenPayload },
     @Param('id') id: string,
-    @Body() dto: { fullName: string; floorRole: FloorRole },
+    @Body() dto: { fullName: string; floorRole: FloorRole; incentiveBase?: number },
   ) {
     if (!floorRole.enumValues.includes(dto?.floorRole)) {
       throw new BadRequestException('El campo floorRole no es un rol en el piso válido');
@@ -87,6 +87,7 @@ export class AccountsController {
       id,
       requireText(dto.fullName, 'fullName'),
       dto.floorRole,
+      requireNonNegativeNumber(dto.incentiveBase ?? 0, 'incentiveBase'),
     );
   }
 }

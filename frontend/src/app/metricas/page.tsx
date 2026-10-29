@@ -7,6 +7,7 @@ import { useAuthGuard } from '@/components/AuthGuard';
 import { Shell } from '@/components/Shell';
 import { Badge, Drawer, EmptyState, Tabs } from '@/components/ui';
 import { cn } from '@/lib/cn';
+import { formatDay } from '@/lib/time';
 import { useLive } from '@/lib/useLive';
 
 type Range = 'today' | 'week' | 'month' | 'thirty';
@@ -73,6 +74,7 @@ export default function MetricsPage() {
       ) : (
         <div key={`${period.from}-${period.to}`} className="entra">
           <General report={shown} />
+          <OleChart series={shown.series} />
 
           <h2 className="mt-10 text-lg font-semibold tracking-tight">Por colaborador</h2>
           {active.length === 0 ? (
@@ -155,6 +157,74 @@ function General({ report }: { report: MetricsReport }) {
   );
 }
 
+/** Sparkline del OLE día a día: sin librería, un SVG a mano alcanza para una línea. */
+function OleChart({ series }: { series: MetricsReport['series'] }) {
+  if (series.length < 2) return null;
+
+  const w = 100;
+  const h = 32;
+  const pad = 3;
+  const step = (w - pad * 2) / (series.length - 1);
+  const y = (ole: number) => pad + (1 - ole) * (h - pad * 2);
+  const points = series.map((s, i) => ({ x: pad + i * step, y: s.ole === null ? null : y(s.ole), day: s.day, ole: s.ole }));
+
+  // Un hueco sin datos corta la línea en vez de interpolar algo que no pasó.
+  const segments: { x: number; y: number }[][] = [];
+  let current: { x: number; y: number }[] = [];
+  for (const p of points) {
+    if (p.y === null) {
+      if (current.length) segments.push(current);
+      current = [];
+    } else {
+      current.push({ x: p.x, y: p.y });
+    }
+  }
+  if (current.length) segments.push(current);
+
+  return (
+    <section className="mt-4 rounded-2xl border border-line bg-surface p-5">
+      <h3 className="text-sm font-semibold">OLE por día</h3>
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="mt-3 h-36 w-full overflow-visible">
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line
+            key={f}
+            x1={pad}
+            x2={w - pad}
+            y1={pad + f * (h - pad * 2)}
+            y2={pad + f * (h - pad * 2)}
+            className="stroke-line"
+            strokeWidth={0.3}
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+        {segments.map((seg, i) => (
+          <polyline
+            key={i}
+            points={seg.map((p) => `${p.x},${p.y}`).join(' ')}
+            fill="none"
+            className="stroke-brand-500"
+            strokeWidth={1.5}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+        {points
+          .filter((p): p is { x: number; y: number; day: string; ole: number } => p.y !== null)
+          .map((p) => (
+            <circle key={p.day} cx={p.x} cy={p.y} r={1.3} className="fill-brand-600" vectorEffect="non-scaling-stroke">
+              <title>{`${formatDay(p.day)} · OLE ${Math.round(p.ole * 100)}%`}</title>
+            </circle>
+          ))}
+      </svg>
+      <div className="mt-1 flex justify-between text-xs text-muted">
+        <span>{formatDay(series[0]!.day)}</span>
+        <span>{formatDay(series[series.length - 1]!.day)}</span>
+      </div>
+    </section>
+  );
+}
+
 function Tile({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
     <div className="rounded-2xl border border-line bg-surface p-5">
@@ -163,6 +233,15 @@ function Tile({ label, value, detail }: { label: string; value: string; detail?:
       {detail && <p className="mt-1 text-xs text-muted">{detail}</p>}
     </div>
   );
+}
+
+/** Qué factor explica que el OLE no haya llegado al 100%, en el mismo orden en que se muestran. */
+function factorGaps(m: { availability: number; performance: number; quality: number }): string[] {
+  const gaps: string[] = [];
+  if (m.availability < 1) gaps.push(`disponibilidad ${pct(m.availability)}`);
+  if (m.performance < 1) gaps.push(`desempeño ${pct(m.performance)}`);
+  if (m.quality < 1) gaps.push(`calidad ${pct(m.quality)}`);
+  return gaps;
 }
 
 function Factor({ label, value, dark }: { label: string; value: number | null; dark?: boolean }) {
@@ -287,6 +366,19 @@ function WorkerDrawer({
               <Factor label="Calidad" value={m.quality} dark />
             </div>
           </section>
+
+          {w.incentiveBase > 0 && (
+            <section className="rounded-2xl border border-line bg-surface p-5">
+              <p className="text-sm text-muted">Incentivo del período</p>
+              <p className="cifras mt-1 text-3xl font-semibold text-success">
+                {w.incentivePay !== null ? num(w.incentivePay) : '—'}
+              </p>
+              <p className="mt-1 text-xs text-muted">{pct(m.ole)} de {num(w.incentiveBase)} de base</p>
+              {factorGaps(m).length > 0 && (
+                <p className="mt-2 text-xs text-muted">No llegó al 100% por: {factorGaps(m).join(' · ')}.</p>
+              )}
+            </section>
+          )}
 
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
             <Stat label="Jornada" value={`${num(m.shiftHours)} h`} />

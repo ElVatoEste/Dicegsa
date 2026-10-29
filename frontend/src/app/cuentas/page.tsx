@@ -217,10 +217,10 @@ export default function AccountsPage() {
                     <WorkerForm
                       account={account}
                       busy={busy}
-                      onSave={(fullName, floorRole) => {
+                      onSave={(fullName, floorRole, incentiveBase) => {
                         if (!token) return;
                         void run(async () => {
-                          await accountsApi.saveWorker(token, account.id, fullName, floorRole);
+                          await accountsApi.saveWorker(token, account.id, fullName, floorRole, incentiveBase);
                           toast.success(`Perfil de ${account.accountName} guardado`);
                         });
                       }}
@@ -300,20 +300,23 @@ function WorkerForm({
 }: {
   account: Account;
   busy: boolean;
-  onSave: (fullName: string, floorRole: FloorRole) => void;
+  onSave: (fullName: string, floorRole: FloorRole, incentiveBase: number) => void;
 }) {
   const [fullName, setFullName] = useState(account.fullName ?? '');
   const [floorRole, setFloorRole] = useState<FloorRole>(account.floorRole ?? 'picker');
+  const [incentiveBase, setIncentiveBase] = useState(String(account.incentiveBase ?? 0));
 
   const dirty =
-    fullName.trim() !== (account.fullName ?? '') || floorRole !== (account.floorRole ?? 'picker');
+    fullName.trim() !== (account.fullName ?? '') ||
+    floorRole !== (account.floorRole ?? 'picker') ||
+    Number(incentiveBase) !== (account.incentiveBase ?? 0);
 
   return (
     <form
       className="flex items-center gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        if (fullName.trim()) onSave(fullName, floorRole);
+        if (fullName.trim()) onSave(fullName, floorRole, Number(incentiveBase) || 0);
       }}
     >
       <Input
@@ -332,6 +335,17 @@ function WorkerForm({
         searchPlaceholder="Buscar…"
         onChange={setFloorRole}
         options={FLOOR_ROLES.map((r) => ({ value: r, label: FLOOR_ROLE_LABEL[r] }))}
+      />
+      <Input
+        type="number"
+        min={0}
+        step="0.01"
+        value={incentiveBase}
+        onChange={(e) => setIncentiveBase(e.target.value)}
+        placeholder="Incentivo"
+        aria-label={`Incentivo mensual de ${account.accountName}`}
+        size="sm"
+        className="w-28"
       />
       {/* Reserva su lugar aunque no haya cambios, así la fila no se reacomoda al tipear. */}
       <Button

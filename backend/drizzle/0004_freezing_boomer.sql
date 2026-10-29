@@ -1,0 +1,1 @@
+ALTER TABLE "workers" ADD COLUMN "incentive_base" numeric(10, 2) DEFAULT '0' NOT NULL;
