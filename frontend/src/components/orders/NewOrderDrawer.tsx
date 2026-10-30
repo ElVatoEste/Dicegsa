@@ -263,42 +263,51 @@ export function NewOrderDrawer({
           <ul className="mt-3 space-y-2">
             {extra.map((line, i) => (
               <li key={i} className="flex flex-wrap items-center gap-2 rounded-lg border border-line p-2">
-                <Input
-                  value={line.productCode}
-                  onChange={(e) => updateExtra(i, { productCode: e.target.value })}
-                  placeholder="Código"
-                  className="w-24 cifras"
-                  aria-label="Código del producto"
-                />
-                <Input
-                  value={line.productName}
-                  onChange={(e) => updateExtra(i, { productName: e.target.value })}
-                  placeholder="Nombre del producto"
-                  className="min-w-0 flex-1"
-                  aria-label="Nombre del producto"
-                />
-                <Input
-                  value={line.lot}
-                  onChange={(e) => updateExtra(i, { lot: e.target.value })}
-                  placeholder="Lote"
-                  className="w-24 cifras"
-                  aria-label="Lote"
-                />
-                <Input
-                  type="date"
-                  value={line.expiresOn ?? ''}
-                  onChange={(e) => updateExtra(i, { expiresOn: e.target.value || null })}
-                  className="w-36 cifras"
-                  aria-label="Vence"
-                />
-                <Input
-                  type="number"
-                  min={1}
-                  value={line.quantity}
-                  onChange={(e) => updateExtra(i, { quantity: Number(e.target.value) })}
-                  className="w-16 cifras"
-                  aria-label="Cantidad"
-                />
+                <div className="w-24 shrink-0">
+                  <Input
+                    value={line.productCode}
+                    onChange={(e) => updateExtra(i, { productCode: e.target.value })}
+                    placeholder="Código"
+                    className="cifras"
+                    aria-label="Código del producto"
+                  />
+                </div>
+                <div className="min-w-[10rem] flex-1">
+                  <Input
+                    value={line.productName}
+                    onChange={(e) => updateExtra(i, { productName: e.target.value })}
+                    placeholder="Nombre del producto"
+                    aria-label="Nombre del producto"
+                  />
+                </div>
+                <div className="w-24 shrink-0">
+                  <Input
+                    value={line.lot}
+                    onChange={(e) => updateExtra(i, { lot: e.target.value })}
+                    placeholder="Lote"
+                    className="cifras"
+                    aria-label="Lote"
+                  />
+                </div>
+                <div className="w-36 shrink-0">
+                  <Input
+                    type="date"
+                    value={line.expiresOn ?? ''}
+                    onChange={(e) => updateExtra(i, { expiresOn: e.target.value || null })}
+                    className="cifras"
+                    aria-label="Vence"
+                  />
+                </div>
+                <div className="w-16 shrink-0">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={line.quantity}
+                    onChange={(e) => updateExtra(i, { quantity: Number(e.target.value) })}
+                    className="cifras"
+                    aria-label="Cantidad"
+                  />
+                </div>
                 <Button variant="ghost" size="sm" onClick={() => removeExtra(i)} aria-label="Quitar línea">
                   <Trash2 size={14} aria-hidden />
                 </Button>
