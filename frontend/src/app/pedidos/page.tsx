@@ -6,10 +6,12 @@ import {
   catalogsApi,
   ordersApi,
   pickListsApi,
+  productsApi,
   type CatalogEntry,
   type OrderRow,
   type OrderStatus,
   type Picker,
+  type Product,
   type Settings,
 } from '@/lib/api';
 import { useAuthGuard } from '@/components/AuthGuard';
@@ -44,17 +46,19 @@ interface Board {
   inventoryZones: CatalogEntry[];
   pickers: Picker[];
   settings: Settings;
+  products: Product[];
 }
 
 async function loadBoard(token: string): Promise<Board> {
-  const [orders, dispatchZones, inventoryZones, pickers, settings] = await Promise.all([
+  const [orders, dispatchZones, inventoryZones, pickers, settings, products] = await Promise.all([
     ordersApi.list(token),
     catalogsApi.list(token, 'dispatch_zone'),
     catalogsApi.list(token, 'inventory_zone'),
     pickListsApi.pickers(token),
     catalogsApi.settings(token),
+    productsApi.list(token),
   ]);
-  return { orders, dispatchZones, inventoryZones, pickers, settings };
+  return { orders, dispatchZones, inventoryZones, pickers, settings, products };
 }
 
 export default function OrdersPage() {
@@ -343,6 +347,7 @@ export default function OrdersPage() {
             token={token}
             dispatchZones={data.dispatchZones}
             inventoryZones={data.inventoryZones}
+            products={data.products}
             onCreated={reload}
           />
           <OrderDrawer

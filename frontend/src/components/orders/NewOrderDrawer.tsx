@@ -1,12 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ClipboardPaste, PackagePlus } from 'lucide-react';
-import { ordersApi, type CatalogEntry } from '@/lib/api';
+import { ClipboardPaste, ListPlus, PackagePlus, Trash2 } from 'lucide-react';
+import { ordersApi, type CatalogEntry, type Product } from '@/lib/api';
 import { Button, Combobox, Drawer, Field, Input } from '@/components/ui';
-import { parseLines } from '@/lib/paste';
+import { parseLines, type PastedLine } from '@/lib/paste';
 import { formatDay, fromLocalInput, toLocalInput } from '@/lib/time';
 import { useAction } from '@/lib/useLive';
+
+const BLANK_LINE: PastedLine = { productCode: '', productName: '', quantity: 1, lot: '', expiresOn: null };
 
 function zoneOptions(zones: CatalogEntry[]) {
   return [{ value: '', label: 'Sin asignar' }, ...zones.filter((z) => z.active).map((z) => ({ value: z.id, label: z.name }))];
@@ -33,6 +35,7 @@ export function NewOrderDrawer({
   token,
   dispatchZones,
   inventoryZones,
+  products,
   onCreated,
 }: {
   open: boolean;
@@ -40,16 +43,50 @@ export function NewOrderDrawer({
   token: string;
   dispatchZones: CatalogEntry[];
   inventoryZones: CatalogEntry[];
+  products: Product[];
   onCreated: () => void;
 }) {
   const [form, setForm] = useState(EMPTY);
   const [receivedAt, setReceivedAt] = useState(() => toLocalInput(new Date().toISOString()));
   const [dueAt, setDueAt] = useState('');
   const [pasted, setPasted] = useState('');
+  const [extra, setExtra] = useState<PastedLine[]>([]);
+  const [pick, setPick] = useState('');
   const { busy, run } = useAction();
 
   const parsed = useMemo(() => parseLines(pasted), [pasted]);
-  const units = parsed.lines.reduce((sum, l) => sum + l.quantity, 0);
+  const lines = useMemo(() => [...parsed.lines, ...extra], [parsed.lines, extra]);
+  const units = lines.reduce((sum, l) => sum + l.quantity, 0);
+  const extraReady = extra.every(
+    (l) => l.productCode.trim() && l.productName.trim() && Number.isInteger(l.quantity) && l.quantity > 0 && l.lot.trim(),
+  );
+
+  const productOptions = useMemo(
+    () => products.map((p) => ({ value: p.id, label: `${p.code} · ${p.name}`, hint: p.lot ?? undefined })),
+    [products],
+  );
+
+  function addFromInventory(id: string) {
+    const p = products.find((x) => x.id === id);
+    if (!p) return;
+    setExtra((rows) => [
+      ...rows,
+      { productCode: p.code, productName: p.name, quantity: 1, lot: p.lot ?? '', expiresOn: p.expiresOn },
+    ]);
+    setPick('');
+  }
+
+  function addManual() {
+    setExtra((rows) => [...rows, { ...BLANK_LINE }]);
+  }
+
+  function updateExtra(i: number, patch: Partial<PastedLine>) {
+    setExtra((rows) => rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  }
+
+  function removeExtra(i: number) {
+    setExtra((rows) => rows.filter((_, idx) => idx !== i));
+  }
 
   const set = (key: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -61,8 +98,9 @@ export function NewOrderDrawer({
     form.department.trim() &&
     form.municipality.trim() &&
     dueAt &&
-    parsed.lines.length > 0 &&
-    parsed.errors.length === 0;
+    lines.length > 0 &&
+    parsed.errors.length === 0 &&
+    extraReady;
 
   async function submit() {
     const ok = await run(
@@ -74,13 +112,14 @@ export function NewOrderDrawer({
           inventoryZoneId: form.inventoryZoneId || undefined,
           receivedAt: fromLocalInput(receivedAt),
           dueAt: fromLocalInput(dueAt),
-          lines: parsed.lines,
+          lines,
         }),
       `Pedido ${form.externalId} cargado`,
     );
     if (ok) {
       setForm(EMPTY);
       setPasted('');
+      setExtra([]);
       setDueAt('');
       setReceivedAt(toLocalInput(new Date().toISOString()));
       onCreated();
@@ -98,7 +137,7 @@ export function NewOrderDrawer({
       footer={
         <div className="flex items-center justify-between gap-3">
           <p className="cifras text-sm text-muted">
-            {parsed.lines.length} líneas · {units} unidades
+            {lines.length} líneas · {units} unidades
           </p>
           <Button onClick={submit} disabled={!ready} loading={busy}>
             <PackagePlus size={16} aria-hidden />
@@ -191,6 +230,78 @@ export function NewOrderDrawer({
                   {line.expiresOn && ` · ${formatDay(line.expiresOn)}`}
                 </span>
                 <span className="cifras w-12 shrink-0 text-right font-semibold">{line.quantity}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-6">
+        <div className="flex items-center justify-between gap-2">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <ListPlus size={15} className="text-brand-600" aria-hidden />
+            Agregar producto
+          </label>
+          <Button variant="ghost" size="sm" onClick={addManual}>
+            Agregar manual
+          </Button>
+        </div>
+        <p className="mt-1 text-xs text-muted">
+          Buscá en el inventario del almacén o agregalo manual si no aparece.
+        </p>
+        <Combobox
+          value={pick}
+          onChange={addFromInventory}
+          options={productOptions}
+          placeholder="Buscar producto en el inventario…"
+          searchPlaceholder="Código o nombre…"
+          maxResults={50}
+          className="mt-2"
+        />
+
+        {extra.length > 0 && (
+          <ul className="mt-3 space-y-2">
+            {extra.map((line, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-2 rounded-lg border border-line p-2">
+                <Input
+                  value={line.productCode}
+                  onChange={(e) => updateExtra(i, { productCode: e.target.value })}
+                  placeholder="Código"
+                  className="w-24 cifras"
+                  aria-label="Código del producto"
+                />
+                <Input
+                  value={line.productName}
+                  onChange={(e) => updateExtra(i, { productName: e.target.value })}
+                  placeholder="Nombre del producto"
+                  className="min-w-0 flex-1"
+                  aria-label="Nombre del producto"
+                />
+                <Input
+                  value={line.lot}
+                  onChange={(e) => updateExtra(i, { lot: e.target.value })}
+                  placeholder="Lote"
+                  className="w-24 cifras"
+                  aria-label="Lote"
+                />
+                <Input
+                  type="date"
+                  value={line.expiresOn ?? ''}
+                  onChange={(e) => updateExtra(i, { expiresOn: e.target.value || null })}
+                  className="w-36 cifras"
+                  aria-label="Vence"
+                />
+                <Input
+                  type="number"
+                  min={1}
+                  value={line.quantity}
+                  onChange={(e) => updateExtra(i, { quantity: Number(e.target.value) })}
+                  className="w-16 cifras"
+                  aria-label="Cantidad"
+                />
+                <Button variant="ghost" size="sm" onClick={() => removeExtra(i)} aria-label="Quitar línea">
+                  <Trash2 size={14} aria-hidden />
+                </Button>
               </li>
             ))}
           </ul>

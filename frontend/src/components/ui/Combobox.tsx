@@ -39,6 +39,7 @@ export function Combobox<T extends string>({
   className,
   tone = 'light',
   openSignal,
+  maxResults,
   'aria-label': ariaLabel,
 }: {
   value: T | '';
@@ -54,6 +55,8 @@ export function Combobox<T extends string>({
   tone?: 'light' | 'dark';
   /** Cada cambio de este número abre el desplegable desde afuera, por ejemplo al soltar una tarjeta. */
   openSignal?: number;
+  /** Para catálogos grandes: sin texto no se lista nada, y el resultado se recorta a este tope. */
+  maxResults?: number;
   'aria-label'?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -69,8 +72,10 @@ export function Combobox<T extends string>({
   const selected = options.find((o) => o.value === value);
   const filtered = useMemo(() => {
     const q = normalize(query.trim());
-    return q ? options.filter((o) => normalize(`${o.label} ${o.hint ?? ''}`).includes(q)) : options;
-  }, [options, query]);
+    if (!q) return maxResults ? [] : options;
+    const matches = options.filter((o) => normalize(`${o.label} ${o.hint ?? ''}`).includes(q));
+    return maxResults ? matches.slice(0, maxResults) : matches;
+  }, [options, query, maxResults]);
 
   function place_() {
     const rect = trigger.current?.getBoundingClientRect();
@@ -219,7 +224,9 @@ export function Combobox<T extends string>({
             </label>
             <ul ref={list} id={listId} role="listbox" className="max-h-64 overflow-y-auto p-1.5">
               {filtered.length === 0 ? (
-                <li className="px-3 py-6 text-center text-sm text-muted">Sin resultados</li>
+                <li className="px-3 py-6 text-center text-sm text-muted">
+                  {maxResults && !query.trim() ? 'Escribí para buscar' : 'Sin resultados'}
+                </li>
               ) : (
                 filtered.map((option, i) => {
                   const isSelected = option.value === value;
