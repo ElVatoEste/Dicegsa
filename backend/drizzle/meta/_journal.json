@@ -43,6 +43,13 @@
       "when": 1793258281499,
       "tag": "0005_yielding_joshua_kane",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793328771516,
+      "tag": "0006_nappy_famine",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,13 @@
-import { ChartColumn, ClipboardCheck, PackageSearch, ScrollText, SlidersHorizontal, Users, type LucideIcon } from 'lucide-react';
+import {
+  Boxes,
+  ChartColumn,
+  ClipboardCheck,
+  PackageSearch,
+  ScrollText,
+  SlidersHorizontal,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import type { SystemRole } from './api';
 
 export interface NavItem {
@@ -34,6 +43,12 @@ const GROUPS: NavGroup[] = [
         label: 'Métricas',
         icon: ChartColumn,
         roles: ['supervisor', 'management', 'admin'],
+      },
+      {
+        href: '/inventario/',
+        label: 'Inventario',
+        icon: Boxes,
+        roles: ['control_desk', 'supervisor', 'management', 'admin'],
       },
     ],
   },

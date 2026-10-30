@@ -45,6 +45,9 @@ export const PATHS = {
   metrics: {
     root: '/metrics',
   },
+  products: {
+    root: '/products',
+  },
   pickLists: {
     root: '/pick-lists',
     one: (id: string) => `/pick-lists/${id}`,

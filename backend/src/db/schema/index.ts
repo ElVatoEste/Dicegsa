@@ -13,3 +13,4 @@ export * from './stops';
 export * from './validation-errors';
 export * from './audit-log';
 export * from './password-reset-requests';
+export * from './products';

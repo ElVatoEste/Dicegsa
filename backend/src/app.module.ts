@@ -6,6 +6,7 @@ import { DbModule } from './db/db.module';
 import { EventsModule } from './events/events.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { OrdersModule } from './orders/orders.module';
+import { ProductsModule } from './products/products.module';
 import { StopCausesModule } from './stop-causes/stop-causes.module';
 
 @Module({
@@ -18,6 +19,7 @@ import { StopCausesModule } from './stop-causes/stop-causes.module';
     CatalogsModule,
     OrdersModule,
     MetricsModule,
+    ProductsModule,
   ],
 })
 export class AppModule {}
